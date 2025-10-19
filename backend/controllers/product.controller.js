@@ -1,0 +1,250 @@
+import { redis } from "../lib/redis.js";
+import cloudinary from "../lib/cloudinary.js";
+import Product from "../models/product.model.js";
+
+export const getAllProducts = async (req, res) => {
+	try {
+		const products = await Product.find({});
+		res.json({ products });
+	} catch (error) {
+		console.log("Error in getAllProducts controller", error.message);
+		res.status(500).json({ message: "Server error", error: error.message });
+	}
+};
+
+export const getFeaturedProducts = async (req, res) => {
+	try {
+		let featuredProducts = await redis.get("featured_products");
+		if (featuredProducts) {
+			return res.json(JSON.parse(featuredProducts));
+		}
+
+		featuredProducts = await Product.find({ isFeatured: true }).lean();
+
+		if (!featuredProducts) {
+			return res.status(404).json({ message: "No featured products found" });
+		}
+
+		await redis.set("featured_products", JSON.stringify(featuredProducts));
+
+		res.json(featuredProducts);
+	} catch (error) {
+		console.log("Error in getFeaturedProducts controller", error.message);
+		res.status(500).json({ message: "Server error", error: error.message });
+	}
+};
+
+export const createProduct = async (req, res) => {
+	try {
+		const { name, description, price, image, additionalImages, category } = req.body;
+
+		let cloudinaryResponse = null;
+		let additionalImagesUrls = [];
+
+		// Upload main image
+		if (image) {
+			cloudinaryResponse = await cloudinary.uploader.upload(image, { folder: "products" });
+		}
+
+		// Upload additional images (max 3)
+		if (additionalImages && Array.isArray(additionalImages)) {
+			// Limit to 3 additional images
+			const imagesToUpload = additionalImages.slice(0, 3);
+			
+			for (const img of imagesToUpload) {
+				try {
+					const uploadResult = await cloudinary.uploader.upload(img, { folder: "products" });
+					additionalImagesUrls.push(uploadResult.secure_url);
+				} catch (error) {
+					console.log("Error uploading additional image:", error.message);
+				}
+			}
+		}
+
+		const product = await Product.create({
+			name,
+			description,
+			price,
+			image: cloudinaryResponse?.secure_url ? cloudinaryResponse.secure_url : "",
+			additionalImages: additionalImagesUrls,
+			category,
+		});
+
+		res.status(201).json(product);
+	} catch (error) {
+		console.log("Error in createProduct controller", error.message);
+		res.status(500).json({ message: "Server error", error: error.message });
+	}
+};
+
+export const deleteProduct = async (req, res) => {
+	try {
+		const product = await Product.findById(req.params.id);
+
+		if (!product) {
+			return res.status(404).json({ message: "Product not found" });
+		}
+
+		// Delete main image from cloudinary
+		if (product.image) {
+			const publicId = product.image.split("/").pop().split(".")[0];
+			try {
+				await cloudinary.uploader.destroy(`products/${publicId}`);
+				console.log("Deleted main image from cloudinary");
+			} catch (error) {
+				console.log("Error deleting main image from cloudinary", error);
+			}
+		}
+
+		// Delete additional images from cloudinary
+		if (product.additionalImages && product.additionalImages.length > 0) {
+			for (const imgUrl of product.additionalImages) {
+				const publicId = imgUrl.split("/").pop().split(".")[0];
+				try {
+					await cloudinary.uploader.destroy(`products/${publicId}`);
+					console.log("Deleted additional image from cloudinary");
+				} catch (error) {
+					console.log("Error deleting additional image from cloudinary", error);
+				}
+			}
+		}
+
+		await Product.findByIdAndDelete(req.params.id);
+
+		res.json({ message: "Product deleted successfully" });
+	} catch (error) {
+		console.log("Error in deleteProduct controller", error.message);
+		res.status(500).json({ message: "Server error", error: error.message });
+	}
+};
+
+export const getRecommendedProducts = async (req, res) => {
+	try {
+		const products = await Product.aggregate([
+			{
+				$sample: { size: 4 },
+			},
+			{
+				$project: {
+					_id: 1,
+					name: 1,
+					description: 1,
+					image: 1,
+					additionalImages: 1, // Include additional images
+					price: 1,
+				},
+			},
+		]);
+
+		res.json(products);
+	} catch (error) {
+		console.log("Error in getRecommendedProducts controller", error.message);
+		res.status(500).json({ message: "Server error", error: error.message });
+	}
+};
+
+export const getProductsByCategory = async (req, res) => {
+	const { category } = req.params;
+	try {
+		const products = await Product.find({ category });
+		res.json({ products });
+	} catch (error) {
+		console.log("Error in getProductsByCategory controller", error.message);
+		res.status(500).json({ message: "Server error", error: error.message });
+	}
+};
+
+export const toggleFeaturedProduct = async (req, res) => {
+	try {
+		const product = await Product.findById(req.params.id);
+		if (product) {
+			product.isFeatured = !product.isFeatured;
+			const updatedProduct = await product.save();
+			await updateFeaturedProductsCache();
+			res.json(updatedProduct);
+		} else {
+			res.status(404).json({ message: "Product not found" });
+		}
+	} catch (error) {
+		console.log("Error in toggleFeaturedProduct controller", error.message);
+		res.status(500).json({ message: "Server error", error: error.message });
+	}
+};
+
+// NEW CONTROLLER: Update product (optional, but recommended)
+export const updateProduct = async (req, res) => {
+	try {
+		const { name, description, price, image, additionalImages, category } = req.body;
+		const product = await Product.findById(req.params.id);
+
+		if (!product) {
+			return res.status(404).json({ message: "Product not found" });
+		}
+
+		// Update basic fields
+		if (name) product.name = name;
+		if (description) product.description = description;
+		if (price) product.price = price;
+		if (category) product.category = category;
+
+		// Update main image if provided
+		if (image) {
+			// Delete old image from cloudinary
+			if (product.image) {
+				const publicId = product.image.split("/").pop().split(".")[0];
+				try {
+					await cloudinary.uploader.destroy(`products/${publicId}`);
+				} catch (error) {
+					console.log("Error deleting old image", error);
+				}
+			}
+			// Upload new image
+			const cloudinaryResponse = await cloudinary.uploader.upload(image, { folder: "products" });
+			product.image = cloudinaryResponse.secure_url;
+		}
+
+		// Update additional images if provided
+		if (additionalImages && Array.isArray(additionalImages)) {
+			// Delete old additional images from cloudinary
+			if (product.additionalImages && product.additionalImages.length > 0) {
+				for (const imgUrl of product.additionalImages) {
+					const publicId = imgUrl.split("/").pop().split(".")[0];
+					try {
+						await cloudinary.uploader.destroy(`products/${publicId}`);
+					} catch (error) {
+						console.log("Error deleting old additional image", error);
+					}
+				}
+			}
+
+			// Upload new additional images
+			const additionalImagesUrls = [];
+			const imagesToUpload = additionalImages.slice(0, 3);
+			
+			for (const img of imagesToUpload) {
+				try {
+					const uploadResult = await cloudinary.uploader.upload(img, { folder: "products" });
+					additionalImagesUrls.push(uploadResult.secure_url);
+				} catch (error) {
+					console.log("Error uploading additional image:", error.message);
+				}
+			}
+			product.additionalImages = additionalImagesUrls;
+		}
+
+		const updatedProduct = await product.save();
+		res.json(updatedProduct);
+	} catch (error) {
+		console.log("Error in updateProduct controller", error.message);
+		res.status(500).json({ message: "Server error", error: error.message });
+	}
+};
+
+async function updateFeaturedProductsCache() {
+	try {
+		const featuredProducts = await Product.find({ isFeatured: true }).lean();
+		await redis.set("featured_products", JSON.stringify(featuredProducts));
+	} catch (error) {
+		console.log("error in update cache function");
+	}
+}
