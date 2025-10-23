@@ -86,10 +86,11 @@ export const sendOrderConfirmationEmail = async (userEmail, orderDetails) => {
             </div>
             
             <p>We'll send you another email once your order has been shipped.</p>
-            <p>If you have any questions, please contact us.</p>
+            <p>If you have any questions, please contact us at support@aixrobo.com</p>
           </div>
           <div class="footer">
-            <p>© 2025 Your Store. All rights reserved.</p>
+            <p>© 2025 AixRobo. All rights reserved.</p>
+            <p>This is an automated email. Please do not reply to this message.</p>
           </div>
         </div>
       </body>
@@ -97,7 +98,8 @@ export const sendOrderConfirmationEmail = async (userEmail, orderDetails) => {
     `;
 
     const { data, error } = await resend.emails.send({
-      from: 'Your Store <onboarding@resend.dev>', // For testing - change to your domain later
+      from: 'AixRobo Store <orders@aixrobo.com>',
+      replyTo: 'support@aixrobo.com',
       to: userEmail,
       subject: `Order Confirmation - #${orderId}`,
       html: emailHTML,
@@ -216,7 +218,7 @@ export const sendAdminOrderNotification = async (orderDetails) => {
     `;
 
     const { data, error } = await resend.emails.send({
-      from: 'Admin Notifications <onboarding@resend.dev>', // Change to your domain later
+      from: 'AixRobo Orders <noreply@aixrobo.com>',
       to: process.env.ADMIN_EMAIL,
       subject: `🔔 New Order Received - #${orderId}`,
       html: emailHTML,
