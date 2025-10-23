@@ -1,14 +1,25 @@
 import Coupon from "../models/coupon.model.js";
 import Order from "../models/order.model.js";
+import User from "../models/user.model.js";
+import Product from "../models/product.model.js";
 import { razorpay } from "../lib/razorpay.js";
+import { sendOrderConfirmationEmail, sendAdminOrderNotification } from "../lib/email.js";
 import crypto from "crypto";
 
 export const createCheckoutSession = async (req, res) => {
   try {
-    const { products, couponCode } = req.body;
+    const { products, couponCode, shippingAddress } = req.body;
 
+    // Validate products
     if (!Array.isArray(products) || products.length === 0) {
       return res.status(400).json({ error: "Invalid or empty products array" });
+    }
+
+    // Validate shipping address
+    if (!shippingAddress || !shippingAddress.fullName || !shippingAddress.phone || 
+        !shippingAddress.addressLine1 || !shippingAddress.city || 
+        !shippingAddress.state || !shippingAddress.pincode) {
+      return res.status(400).json({ error: "Complete shipping address is required" });
     }
 
     let totalAmount = 0;
@@ -49,6 +60,8 @@ export const createCheckoutSession = async (req, res) => {
             price: p.price,
           }))
         ),
+        // Store shipping address in notes
+        shippingAddress: JSON.stringify(shippingAddress),
       },
     };
 
@@ -109,12 +122,68 @@ export const verifyPayment = async (req, res) => {
       });
     }
 
+    // Parse order data
+    const products = JSON.parse(order.notes.products);
+    const shippingAddress = JSON.parse(order.notes.shippingAddress);
+    const userId = order.notes.userId;
+
+    // Fetch user details
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "User not found" 
+      });
+    }
+
+    // Fetch product details for email
+    const productDetails = await Product.find({
+      _id: { $in: products.map(p => p.id) }
+    });
+
+    const productsWithDetails = products.map((p) => {
+      const productInfo = productDetails.find(
+        (prod) => prod._id.toString() === p.id
+      );
+      return {
+        product: {
+          _id: p.id,
+          name: productInfo?.name || "Product",
+          image: productInfo?.image || "",
+        },
+        quantity: p.quantity,
+        price: p.price,
+      };
+    });
+
+    // Create order in database
+    const newOrder = new Order({
+      user: userId,
+      products: products.map((product) => ({
+        product: product.id,
+        quantity: product.quantity,
+        price: product.price,
+      })),
+      totalAmount: order.amount / 100, // Convert from paise to rupees
+      shippingAddress: shippingAddress,
+      razorpayOrderId: razorpay_order_id,
+      razorpayPaymentId: razorpay_payment_id,
+      paymentStatus: "completed",
+      orderStatus: "processing",
+    });
+
+    await newOrder.save();
+
+    // Clear user's cart
+    user.cartItems = [];
+    await user.save();
+
     // Deactivate coupon if used
     if (order.notes.couponCode) {
       await Coupon.findOneAndUpdate(
         {
           code: order.notes.couponCode,
-          userId: order.notes.userId,
+          userId: userId,
         },
         {
           isActive: false,
@@ -122,26 +191,33 @@ export const verifyPayment = async (req, res) => {
       );
     }
 
-    // Create order in database
-    const products = JSON.parse(order.notes.products);
-    const newOrder = new Order({
-      user: order.notes.userId,
-      products: products.map((product) => ({
-        product: product.id,
-        quantity: product.quantity,
-        price: product.price,
-      })),
-      totalAmount: order.amount / 100, // Convert from paise to rupees
-      razorpayOrderId: razorpay_order_id,
-      razorpayPaymentId: razorpay_payment_id,
-      paymentStatus: "completed",
-    });
-
-    await newOrder.save();
-
     // Create new coupon if order amount >= 20000 paise (200 INR)
     if (order.amount >= 20000) {
-      await createNewCoupon(order.notes.userId);
+      await createNewCoupon(userId);
+    }
+
+    // Send emails (don't wait for them to complete)
+    try {
+      // Send confirmation email to user
+      await sendOrderConfirmationEmail(user.email, {
+        orderId: newOrder._id,
+        products: productsWithDetails,
+        totalAmount: newOrder.totalAmount,
+        shippingAddress: shippingAddress,
+      });
+
+      // Send notification email to admin
+      await sendAdminOrderNotification({
+        orderId: newOrder._id,
+        userEmail: user.email,
+        userName: user.name,
+        products: productsWithDetails,
+        totalAmount: newOrder.totalAmount,
+        shippingAddress: shippingAddress,
+      });
+    } catch (emailError) {
+      console.error("Error sending emails:", emailError);
+      // Don't fail the order if email fails
     }
 
     res.status(200).json({

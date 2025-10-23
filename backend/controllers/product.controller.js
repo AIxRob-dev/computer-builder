@@ -12,6 +12,23 @@ export const getAllProducts = async (req, res) => {
 	}
 };
 
+// Add this function to your product.controller.js
+export const getProductById = async (req, res) => {
+	try {
+		const { id } = req.params;
+		const product = await Product.findById(id);
+		
+		if (!product) {
+			return res.status(404).json({ message: "Product not found" });
+		}
+		
+		res.json(product);
+	} catch (error) {
+		console.log("Error in getProductById controller:", error.message);
+		res.status(500).json({ message: "Server error", error: error.message });
+	}
+};
+
 export const getFeaturedProducts = async (req, res) => {
 	try {
 		let featuredProducts = await redis.get("featured_products");
@@ -34,9 +51,32 @@ export const getFeaturedProducts = async (req, res) => {
 	}
 };
 
+// NEW CONTROLLER: Get Best Seller Products
+export const getBestSellerProducts = async (req, res) => {
+	try {
+		let bestSellerProducts = await redis.get("best_seller_products");
+		if (bestSellerProducts) {
+			return res.json(JSON.parse(bestSellerProducts));
+		}
+
+		bestSellerProducts = await Product.find({ isBestSeller: true }).lean();
+
+		if (!bestSellerProducts) {
+			return res.status(404).json({ message: "No best seller products found" });
+		}
+
+		await redis.set("best_seller_products", JSON.stringify(bestSellerProducts));
+
+		res.json(bestSellerProducts);
+	} catch (error) {
+		console.log("Error in getBestSellerProducts controller", error.message);
+		res.status(500).json({ message: "Server error", error: error.message });
+	}
+};
+
 export const createProduct = async (req, res) => {
 	try {
-		const { name, description, price, image, additionalImages, category } = req.body;
+		const { name, description, price, image, additionalImages, category, isFeatured, isBestSeller } = req.body;
 
 		let cloudinaryResponse = null;
 		let additionalImagesUrls = [];
@@ -48,7 +88,6 @@ export const createProduct = async (req, res) => {
 
 		// Upload additional images (max 3)
 		if (additionalImages && Array.isArray(additionalImages)) {
-			// Limit to 3 additional images
 			const imagesToUpload = additionalImages.slice(0, 3);
 			
 			for (const img of imagesToUpload) {
@@ -68,7 +107,17 @@ export const createProduct = async (req, res) => {
 			image: cloudinaryResponse?.secure_url ? cloudinaryResponse.secure_url : "",
 			additionalImages: additionalImagesUrls,
 			category,
+			isFeatured: isFeatured || false,
+			isBestSeller: isBestSeller || false,
 		});
+
+		// Update caches if product is featured or best seller
+		if (product.isFeatured) {
+			await updateFeaturedProductsCache();
+		}
+		if (product.isBestSeller) {
+			await updateBestSellerProductsCache();
+		}
 
 		res.status(201).json(product);
 	} catch (error) {
@@ -111,6 +160,14 @@ export const deleteProduct = async (req, res) => {
 
 		await Product.findByIdAndDelete(req.params.id);
 
+		// Clear caches if product was featured or best seller
+		if (product.isFeatured) {
+			await redis.del("featured_products");
+		}
+		if (product.isBestSeller) {
+			await redis.del("best_seller_products");
+		}
+
 		res.json({ message: "Product deleted successfully" });
 	} catch (error) {
 		console.log("Error in deleteProduct controller", error.message);
@@ -130,7 +187,7 @@ export const getRecommendedProducts = async (req, res) => {
 					name: 1,
 					description: 1,
 					image: 1,
-					additionalImages: 1, // Include additional images
+					additionalImages: 1,
 					price: 1,
 				},
 			},
@@ -171,25 +228,46 @@ export const toggleFeaturedProduct = async (req, res) => {
 	}
 };
 
-// NEW CONTROLLER: Update product (optional, but recommended)
+// NEW CONTROLLER: Toggle Best Seller Product
+export const toggleBestSellerProduct = async (req, res) => {
+	try {
+		const product = await Product.findById(req.params.id);
+		if (product) {
+			product.isBestSeller = !product.isBestSeller;
+			const updatedProduct = await product.save();
+			await updateBestSellerProductsCache();
+			res.json(updatedProduct);
+		} else {
+			res.status(404).json({ message: "Product not found" });
+		}
+	} catch (error) {
+		console.log("Error in toggleBestSellerProduct controller", error.message);
+		res.status(500).json({ message: "Server error", error: error.message });
+	}
+};
+
 export const updateProduct = async (req, res) => {
 	try {
-		const { name, description, price, image, additionalImages, category } = req.body;
+		const { name, description, price, image, additionalImages, category, isFeatured, isBestSeller } = req.body;
 		const product = await Product.findById(req.params.id);
 
 		if (!product) {
 			return res.status(404).json({ message: "Product not found" });
 		}
 
+		const wasFeatured = product.isFeatured;
+		const wasBestSeller = product.isBestSeller;
+
 		// Update basic fields
 		if (name) product.name = name;
 		if (description) product.description = description;
 		if (price) product.price = price;
 		if (category) product.category = category;
+		if (typeof isFeatured !== 'undefined') product.isFeatured = isFeatured;
+		if (typeof isBestSeller !== 'undefined') product.isBestSeller = isBestSeller;
 
 		// Update main image if provided
 		if (image) {
-			// Delete old image from cloudinary
 			if (product.image) {
 				const publicId = product.image.split("/").pop().split(".")[0];
 				try {
@@ -198,14 +276,12 @@ export const updateProduct = async (req, res) => {
 					console.log("Error deleting old image", error);
 				}
 			}
-			// Upload new image
 			const cloudinaryResponse = await cloudinary.uploader.upload(image, { folder: "products" });
 			product.image = cloudinaryResponse.secure_url;
 		}
 
 		// Update additional images if provided
 		if (additionalImages && Array.isArray(additionalImages)) {
-			// Delete old additional images from cloudinary
 			if (product.additionalImages && product.additionalImages.length > 0) {
 				for (const imgUrl of product.additionalImages) {
 					const publicId = imgUrl.split("/").pop().split(".")[0];
@@ -217,7 +293,6 @@ export const updateProduct = async (req, res) => {
 				}
 			}
 
-			// Upload new additional images
 			const additionalImagesUrls = [];
 			const imagesToUpload = additionalImages.slice(0, 3);
 			
@@ -233,6 +308,15 @@ export const updateProduct = async (req, res) => {
 		}
 
 		const updatedProduct = await product.save();
+
+		// Update caches if featured or best seller status changed
+		if (wasFeatured !== updatedProduct.isFeatured) {
+			await updateFeaturedProductsCache();
+		}
+		if (wasBestSeller !== updatedProduct.isBestSeller) {
+			await updateBestSellerProductsCache();
+		}
+
 		res.json(updatedProduct);
 	} catch (error) {
 		console.log("Error in updateProduct controller", error.message);
@@ -245,6 +329,15 @@ async function updateFeaturedProductsCache() {
 		const featuredProducts = await Product.find({ isFeatured: true }).lean();
 		await redis.set("featured_products", JSON.stringify(featuredProducts));
 	} catch (error) {
-		console.log("error in update cache function");
+		console.log("error in update featured cache function");
+	}
+}
+
+async function updateBestSellerProductsCache() {
+	try {
+		const bestSellerProducts = await Product.find({ isBestSeller: true }).lean();
+		await redis.set("best_seller_products", JSON.stringify(bestSellerProducts));
+	} catch (error) {
+		console.log("error in update best seller cache function");
 	}
 }

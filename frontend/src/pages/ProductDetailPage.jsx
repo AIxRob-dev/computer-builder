@@ -12,33 +12,51 @@ const ProductDetailPage = () => {
 	const navigate = useNavigate();
 	const { user } = useUserStore();
 	const { addToCart } = useCartStore();
-	const { products } = useProductStore();
+	const { products, fetchProductById } = useProductStore();
 	
 	const [product, setProduct] = useState(null);
 	const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 	const [allImages, setAllImages] = useState([]);
 	const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 	const [lightboxImageIndex, setLightboxImageIndex] = useState(0);
+	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {
-		// Find the product from the store
-		const foundProduct = products.find(p => p._id === id);
-		setProduct(foundProduct);
-
-		// Combine main image and additional images into one array
-		if (foundProduct) {
-			const images = [foundProduct.image];
-			if (foundProduct.additionalImages && foundProduct.additionalImages.length > 0) {
-				images.push(...foundProduct.additionalImages);
+		const loadProduct = async () => {
+			setLoading(true);
+			
+			// First try to find in existing products array
+			let foundProduct = products.find(p => p._id === id);
+			
+			// If not found, fetch from API
+			if (!foundProduct) {
+				foundProduct = await fetchProductById(id);
 			}
-			setAllImages(images);
-			setSelectedImageIndex(0); // Reset to first image
-		}
-	}, [id, products]);
+			
+			setProduct(foundProduct);
+
+			// Combine main image and additional images into one array
+			if (foundProduct) {
+				const images = [foundProduct.image];
+				if (foundProduct.additionalImages && foundProduct.additionalImages.length > 0) {
+					images.push(...foundProduct.additionalImages);
+				}
+				setAllImages(images);
+				setSelectedImageIndex(0);
+			}
+			
+			setLoading(false);
+		};
+
+		loadProduct();
+	}, [id, products, fetchProductById]);
 
 	const handleAddToCart = () => {
 		if (!user) {
 			toast.error("Please login to add products to cart", { id: "login" });
+			setTimeout(() => {
+				navigate("/signup");
+			}, 1000);
 			return;
 		}
 		addToCart(product);
@@ -87,10 +105,29 @@ const ProductDetailPage = () => {
 		return () => window.removeEventListener('keydown', handleKeyDown);
 	}, [isLightboxOpen, allImages.length]);
 
+	if (loading) {
+		return (
+			<div className='min-h-screen flex items-center justify-center'>
+				<div className='text-center'>
+					<div className='inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mb-4'></div>
+					<p className='text-2xl text-gray-300'>Loading product...</p>
+				</div>
+			</div>
+		);
+	}
+
 	if (!product) {
 		return (
 			<div className='min-h-screen flex items-center justify-center'>
-				<p className='text-2xl text-gray-300'>Loading product...</p>
+				<div className='text-center'>
+					<p className='text-2xl text-gray-300 mb-4'>Product not found</p>
+					<button 
+						onClick={() => navigate('/')}
+						className='text-emerald-400 hover:text-emerald-300 underline'
+					>
+						Return to Home
+					</button>
+				</div>
 			</div>
 		);
 	}

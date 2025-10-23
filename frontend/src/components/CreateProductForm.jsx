@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { PlusCircle, Upload, Loader, X, Image } from "lucide-react";
+import { PlusCircle, Upload, Loader, X, Image, Star, TrendingUp } from "lucide-react";
 import { useProductStore } from "../stores/useProductStore";
 
-const categories = ["jeans", "t-shirts", "shoes", "glasses", "jackets", "suits", "bags"];
+const categories = ["GTA-Series", "Animes-Series", "Valorant", "Maths", "RDR2", "Explore"];
 
 const CreateProductForm = () => {
 	const [newProduct, setNewProduct] = useState({
@@ -13,6 +13,8 @@ const CreateProductForm = () => {
 		category: "",
 		image: "",
 		additionalImages: [],
+		isFeatured: false,
+		isBestSeller: false,
 	});
 
 	const { createProduct, loading } = useProductStore();
@@ -27,7 +29,9 @@ const CreateProductForm = () => {
 				price: "", 
 				category: "", 
 				image: "",
-				additionalImages: []
+				additionalImages: [],
+				isFeatured: false,
+				isBestSeller: false,
 			});
 		} catch {
 			console.log("error creating a product");
@@ -70,7 +74,6 @@ const CreateProductForm = () => {
 			reader.readAsDataURL(file);
 		});
 
-		// Reset input
 		e.target.value = "";
 	};
 
@@ -192,7 +195,6 @@ const CreateProductForm = () => {
 						</label>
 					</div>
 
-					{/* Main Image Preview */}
 					{newProduct.image && (
 						<div className='mt-3 relative inline-block'>
 							<img
@@ -240,7 +242,6 @@ const CreateProductForm = () => {
 						</label>
 					</div>
 
-					{/* Additional Images Preview */}
 					{newProduct.additionalImages.length > 0 && (
 						<div className='mt-3 grid grid-cols-3 gap-3'>
 							{newProduct.additionalImages.map((img, index) => (
@@ -261,6 +262,67 @@ const CreateProductForm = () => {
 							))}
 						</div>
 					)}
+				</div>
+
+				{/* NEW: Display Options Section */}
+				<div className='border-t border-gray-700 pt-4'>
+					<label className='block text-sm font-medium text-gray-300 mb-3'>
+						Product Display Options
+					</label>
+					
+					<div className='space-y-3'>
+						{/* Featured Product Toggle */}
+						<div className='flex items-center justify-between bg-gray-700/50 p-3 rounded-lg hover:bg-gray-700 transition-colors'>
+							<div className='flex items-center space-x-3'>
+								<div className='p-2 bg-yellow-500/10 rounded-lg'>
+									<Star className='h-5 w-5 text-yellow-400' />
+								</div>
+								<div>
+									<p className='text-sm font-medium text-white'>Featured Product</p>
+									<p className='text-xs text-gray-400'>Show on homepage hero section</p>
+								</div>
+							</div>
+							<button
+								type='button'
+								onClick={() => setNewProduct({ ...newProduct, isFeatured: !newProduct.isFeatured })}
+								className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-gray-800 ${
+									newProduct.isFeatured ? 'bg-emerald-500' : 'bg-gray-600'
+								}`}
+							>
+								<span
+									className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+										newProduct.isFeatured ? 'translate-x-6' : 'translate-x-1'
+									}`}
+								/>
+							</button>
+						</div>
+
+						{/* Best Seller Toggle */}
+						<div className='flex items-center justify-between bg-gray-700/50 p-3 rounded-lg hover:bg-gray-700 transition-colors'>
+							<div className='flex items-center space-x-3'>
+								<div className='p-2 bg-blue-500/10 rounded-lg'>
+									<TrendingUp className='h-5 w-5 text-blue-400' />
+								</div>
+								<div>
+									<p className='text-sm font-medium text-white'>Best Seller</p>
+									<p className='text-xs text-gray-400'>Show in best sellers section</p>
+								</div>
+							</div>
+							<button
+								type='button'
+								onClick={() => setNewProduct({ ...newProduct, isBestSeller: !newProduct.isBestSeller })}
+								className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-gray-800 ${
+									newProduct.isBestSeller ? 'bg-blue-500' : 'bg-gray-600'
+								}`}
+							>
+								<span
+									className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+										newProduct.isBestSeller ? 'translate-x-6' : 'translate-x-1'
+									}`}
+								/>
+							</button>
+						</div>
+					</div>
 				</div>
 
 				<button

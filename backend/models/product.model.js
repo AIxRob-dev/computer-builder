@@ -19,7 +19,6 @@ const productSchema = new mongoose.Schema(
 			type: String,
 			required: [true, "Image is required"],
 		},
-		// NEW FIELD: Additional images (max 3, so total 4 with main image)
 		additionalImages: {
 			type: [String],
 			default: [],
@@ -35,6 +34,11 @@ const productSchema = new mongoose.Schema(
 			required: true,
 		},
 		isFeatured: {
+			type: Boolean,
+			default: false,
+		},
+		// NEW FIELD: Best Seller flag
+		isBestSeller: {
 			type: Boolean,
 			default: false,
 		},
