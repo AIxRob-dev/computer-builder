@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { ShoppingBag, TrendingUp, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import gta6Image from "/GTA6.png";
+import rdr2Image from "/rdr2.jpg";
+import classicImage from "/Classic-product.png";
 
 const HeroSection = () => {
     const [currentSlide, setCurrentSlide] = useState(0);
@@ -14,7 +17,7 @@ const HeroSection = () => {
             buttonText: "Shop Now",
             buttonLink: "/category/GTA-Series",
             gradient: "from-gray-900/50 via-gray-800/40 to-black/60",
-            image: "public/GTA6.png",
+            image: gta6Image,
             icon: ShoppingBag
         },
         {
@@ -24,7 +27,7 @@ const HeroSection = () => {
             buttonText: "Explore",
             buttonLink: "/category/Maths",
             gradient: "from-black/50 via-gray-900/40 to-gray-800/60",
-            image: "public/rdr2.jpg",
+            image: rdr2Image,
             icon: TrendingUp
         },
         {
@@ -34,7 +37,7 @@ const HeroSection = () => {
             buttonText: "View Deals",
             buttonLink: "/category/RDR2",
             gradient: "from-gray-800/50 via-black/40 to-gray-900/60",
-            image: "public/Classic-product.png",
+            image: classicImage,
             icon: Sparkles
         }
     ];
