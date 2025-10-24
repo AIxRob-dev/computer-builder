@@ -96,22 +96,26 @@ const FeaturedProducts = ({ featuredProducts }) => {
     const isEndDisabled = currentIndex >= featuredProducts.length - itemsPerPage;
 
     return (
-        <div className='py-8 sm:py-12 lg:py-16'>
-            <div className='container mx-auto px-4'>
+        <section className='py-10 sm:py-14 lg:py-20'>
+            <div className='container mx-auto px-3 sm:px-4 lg:px-6'>
                 {/* Section Header */}
-                <div className='text-center mb-8 sm:mb-10 lg:mb-12'>
-                    <h2 className='text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-3 sm:mb-4'>
+                <div className='text-center mb-8 sm:mb-10 lg:mb-14'>
+                    <h2 className='text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light text-white mb-2 sm:mb-3 tracking-tight'>
                         Featured Products
                     </h2>
-                    <p className='text-base sm:text-lg text-gray-400 max-w-2xl mx-auto px-4'>
+                    <p className='text-sm sm:text-base lg:text-lg text-zinc-400 max-w-2xl mx-auto font-light'>
                         Hand-picked selections just for you
                     </p>
                 </div>
 
                 <div className='relative'>
-                    {/* Swipe instruction for mobile */}
-                    <div className='md:hidden text-center mb-4'>
-                        <p className='text-sm text-gray-500'>← Swipe to browse →</p>
+                    {/* Swipe indicator for mobile */}
+                    <div className='sm:hidden text-center mb-4'>
+                        <div className='flex items-center justify-center gap-2 text-zinc-500 text-[10px] uppercase tracking-widest'>
+                            <div className='w-6 h-[1px] bg-zinc-700' />
+                            <span>Swipe</span>
+                            <div className='w-6 h-[1px] bg-zinc-700' />
+                        </div>
                     </div>
 
                     <div 
@@ -121,7 +125,7 @@ const FeaturedProducts = ({ featuredProducts }) => {
                         onTouchEnd={handleTouchEnd}
                     >
                         <div
-                            className='flex transition-transform duration-500 ease-in-out'
+                            className='flex transition-transform duration-500 ease-out'
                             style={{ transform: `translateX(-${currentIndex * (100 / itemsPerPage)}%)` }}
                         >
                             {featuredProducts?.map((product) => (
@@ -129,100 +133,115 @@ const FeaturedProducts = ({ featuredProducts }) => {
                                     key={product._id} 
                                     className='w-full sm:w-1/2 lg:w-1/3 xl:w-1/4 flex-shrink-0 px-2 sm:px-3'
                                 >
-                                    {/* Updated Product Card with same dimensions and features */}
+                                    {/* Premium Minimalist Product Card */}
                                     <div 
-                                        className='w-full max-w-sm mx-auto flex flex-col overflow-hidden rounded-lg border border-gray-700 shadow-lg cursor-pointer hover:border-emerald-500 transition-all duration-300 bg-gray-800/50 backdrop-blur-sm hover:shadow-2xl hover:shadow-emerald-500/20 group'
+                                        className='group w-full max-w-sm mx-auto flex flex-col overflow-hidden cursor-pointer 
+                                        bg-zinc-950 border border-zinc-800/50 hover:border-zinc-700 
+                                        transition-all duration-500 hover:shadow-2xl hover:shadow-zinc-900/50'
                                         onClick={() => handleCardClick(product._id)}
                                     >
-                                        {/* Image Container - Shows complete image */}
-                                        <div className='relative w-full aspect-[3/4] overflow-hidden bg-gray-900/50 p-3'>
+                                        {/* Image Container */}
+                                        <div className='relative w-full aspect-[3/4] overflow-hidden bg-zinc-900/30'>
                                             <img 
-                                                className='w-full h-full object-contain transition-transform duration-700 ease-out group-hover:scale-105' 
+                                                className='w-full h-full object-contain p-4 transition-all duration-700 ease-out group-hover:scale-105 group-hover:p-2' 
                                                 src={product.image} 
                                                 alt={product.name}
                                                 loading="lazy"
                                             />
-                                            <div className='absolute inset-0 bg-gradient-to-t from-gray-900/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
+                                            {/* Subtle hover overlay */}
+                                            <div className='absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500' />
                                         </div>
 
                                         {/* Product Info */}
-                                        <div className='flex flex-col flex-grow p-4 sm:p-5'>
-                                            <h5 className='text-lg sm:text-xl font-bold tracking-tight text-white mb-3 line-clamp-2 min-h-[3.5rem] group-hover:text-emerald-400 transition-colors duration-300'>
+                                        <div className='flex flex-col flex-grow p-4 sm:p-5 lg:p-6'>
+                                            {/* Product Name */}
+                                            <h3 className='text-base sm:text-lg font-light tracking-wide text-white mb-3 line-clamp-2 min-h-[3rem] group-hover:text-zinc-300 transition-colors duration-300'>
                                                 {product.name}
-                                            </h5>
+                                            </h3>
                                             
                                             <div className='mt-auto space-y-4'>
-                                                <div className='flex items-baseline gap-2'>
-                                                    <span className='text-3xl sm:text-4xl font-bold text-emerald-400'>
+                                                {/* Price */}
+                                                <div className='flex items-baseline'>
+                                                    <span className='text-2xl sm:text-3xl font-light text-white tracking-tight'>
                                                         ${product.price}
                                                     </span>
                                                 </div>
 
                                                 {/* Action Buttons */}
-                                                <div className='flex gap-3'>
+                                                <div className='flex gap-2 sm:gap-3'>
                                                     {/* Add to Cart Button */}
                                                     <button
-                                                        className='flex-1 flex items-center justify-center rounded-lg bg-emerald-600 text-white px-4 py-3 text-sm font-semibold
-                                                        hover:bg-emerald-500 transition-all duration-300 transform hover:scale-[1.02] active:scale-95 shadow-lg hover:shadow-emerald-500/50'
+                                                        className='flex-1 flex items-center justify-center bg-white text-black px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-medium uppercase tracking-wide
+                                                        hover:bg-zinc-900 hover:text-white border border-white hover:border-zinc-700
+                                                        transition-all duration-300 transform active:scale-95 group/btn overflow-hidden relative'
                                                         onClick={(e) => handleAddToCart(e, product)}
                                                     >
-                                                        <ShoppingCart className='w-5 h-5 mr-2' />
-                                                        <span>Add to Cart</span>
+                                                        <div className='absolute inset-0 bg-zinc-900 transform translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300' />
+                                                        <ShoppingCart className='w-4 h-4 mr-2 relative z-10' strokeWidth={1.5} />
+                                                        <span className='relative z-10'>Add</span>
                                                     </button>
 
                                                     {/* WhatsApp Button */}
                                                     <button
-                                                        className='flex items-center justify-center rounded-lg bg-green-600 text-white px-4 py-3 text-sm font-semibold
-                                                        hover:bg-green-500 transition-all duration-300 transform hover:scale-[1.02] active:scale-95 shadow-lg hover:shadow-green-500/50'
+                                                        className='flex items-center justify-center bg-zinc-900 text-white px-3 sm:px-4 py-2.5 sm:py-3 
+                                                        border border-zinc-800 hover:border-green-600 hover:bg-green-600/10
+                                                        transition-all duration-300 transform active:scale-95'
                                                         onClick={(e) => handleWhatsApp(e, product)}
                                                         title="Chat on WhatsApp"
                                                     >
-                                                        <MessageCircle className='w-5 h-5' />
+                                                        <MessageCircle className='w-4 h-4' strokeWidth={1.5} />
                                                     </button>
                                                 </div>
                                             </div>
                                         </div>
+
+                                        {/* Bottom accent line */}
+                                        <div className='h-[1px] w-0 bg-white group-hover:w-full transition-all duration-500' />
                                     </div>
                                 </div>
                             ))}
                         </div>
                     </div>
 
-                    {/* Navigation Buttons - Hidden on mobile, visible on tablet+ */}
+                    {/* Navigation Buttons - Hidden on mobile */}
                     <button
                         onClick={prevSlide}
                         disabled={isStartDisabled}
-                        className={`hidden md:block absolute top-1/2 -left-4 lg:-left-5 transform -translate-y-1/2 p-2 lg:p-3 rounded-full transition-all duration-300 z-10 ${
+                        className={`hidden sm:flex absolute top-1/2 -left-3 lg:-left-4 transform -translate-y-1/2 
+                        w-10 h-10 lg:w-12 lg:h-12 items-center justify-center z-10
+                        transition-all duration-300 ${
                             isStartDisabled 
-                                ? "bg-gray-700 cursor-not-allowed opacity-50" 
-                                : "bg-white/10 backdrop-blur-sm hover:bg-white/20 border border-white/20 hover:border-white/40"
+                                ? "opacity-30 cursor-not-allowed" 
+                                : "bg-white/5 backdrop-blur-md border border-white/10 hover:bg-white/10 hover:border-white/20"
                         }`}
                     >
-                        <ChevronLeft className='w-5 h-5 lg:w-6 lg:h-6 text-white' />
+                        <ChevronLeft className='w-5 h-5 lg:w-6 lg:h-6 text-white' strokeWidth={1.5} />
                     </button>
 
                     <button
                         onClick={nextSlide}
                         disabled={isEndDisabled}
-                        className={`hidden md:block absolute top-1/2 -right-4 lg:-right-5 transform -translate-y-1/2 p-2 lg:p-3 rounded-full transition-all duration-300 z-10 ${
+                        className={`hidden sm:flex absolute top-1/2 -right-3 lg:-right-4 transform -translate-y-1/2 
+                        w-10 h-10 lg:w-12 lg:h-12 items-center justify-center z-10
+                        transition-all duration-300 ${
                             isEndDisabled 
-                                ? "bg-gray-700 cursor-not-allowed opacity-50" 
-                                : "bg-white/10 backdrop-blur-sm hover:bg-white/20 border border-white/20 hover:border-white/40"
+                                ? "opacity-30 cursor-not-allowed" 
+                                : "bg-white/5 backdrop-blur-md border border-white/10 hover:bg-white/10 hover:border-white/20"
                         }`}
                     >
-                        <ChevronRight className='w-5 h-5 lg:w-6 lg:h-6 text-white' />
+                        <ChevronRight className='w-5 h-5 lg:w-6 lg:h-6 text-white' strokeWidth={1.5} />
                     </button>
 
-                    {/* Dot Indicators for mobile */}
-                    <div className='flex justify-center mt-6 space-x-2 md:hidden'>
+                    {/* Minimalist Dot Indicators for mobile */}
+                    <div className='flex justify-center mt-6 sm:mt-8 gap-1.5 sm:hidden'>
                         {Array.from({ length: Math.ceil(featuredProducts.length / itemsPerPage) }).map((_, index) => (
                             <button
                                 key={index}
                                 onClick={() => setCurrentIndex(index * itemsPerPage)}
-                                className={`transition-all duration-300 rounded-full ${
+                                className={`transition-all duration-300 ${
                                     Math.floor(currentIndex / itemsPerPage) === index
-                                        ? 'w-8 h-2 bg-white'
-                                        : 'w-2 h-2 bg-white/40'
+                                        ? 'w-8 h-0.5 bg-white'
+                                        : 'w-6 h-0.5 bg-white/30'
                                 }`}
                                 aria-label={`Go to page ${index + 1}`}
                             />
@@ -230,7 +249,7 @@ const FeaturedProducts = ({ featuredProducts }) => {
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
     );
 };
 
