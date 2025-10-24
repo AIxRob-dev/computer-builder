@@ -264,7 +264,7 @@ export const sendOrderConfirmationEmail = async (userEmail, orderDetails) => {
               
               <p style="text-align: center; color: #6b7280; font-size: 14px;">
                 Need assistance? Our support team is here to help at 
-                <a href="mailto:support@slatebooks.com" style="color: #10b981; text-decoration: none; font-weight: 500;">support@slatebooks.com</a>
+                <a href="mailto:support@aixrobo.com" style="color: #10b981; text-decoration: none; font-weight: 500;">support@aixrobo.com</a>
               </p>
             </div>
             
@@ -279,8 +279,8 @@ export const sendOrderConfirmationEmail = async (userEmail, orderDetails) => {
     `;
 
     const { data, error } = await resend.emails.send({
-      from: 'SlateBooks <orders@slatebooks.com>',
-      replyTo: 'support@slatebooks.com',
+      from: 'SlateBooks <orders@aixrobo.com>',
+      replyTo: 'support@aixrobo.com',
       to: userEmail,
       subject: `Order Confirmation - #${orderId}`,
       html: emailHTML,
@@ -609,7 +609,7 @@ export const sendAdminOrderNotification = async (orderDetails) => {
     `;
 
     const { data, error } = await resend.emails.send({
-      from: 'SlateBooks Orders <noreply@slatebooks.com>',
+      from: 'SlateBooks Orders <noreply@aixrobo.com>',
       to: process.env.ADMIN_EMAIL,
       subject: `🔔 New Order Received - #${orderId}`,
       html: emailHTML,
