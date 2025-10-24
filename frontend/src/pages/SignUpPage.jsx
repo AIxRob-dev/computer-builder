@@ -20,31 +20,39 @@ const SignUpPage = () => {
 	};
 
 	return (
-		<div className='flex flex-col justify-center py-12 sm:px-6 lg:px-8'>
+		<div className='min-h-screen bg-gradient-to-br from-zinc-950 via-black to-zinc-900 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8'>
+			{/* Header Section */}
 			<motion.div
 				className='sm:mx-auto sm:w-full sm:max-w-md'
 				initial={{ opacity: 0, y: -20 }}
 				animate={{ opacity: 1, y: 0 }}
-				transition={{ duration: 0.8 }}
+				transition={{ duration: 0.6 }}
 			>
-				<h2 className='mt-6 text-center text-3xl font-extrabold text-emerald-400'>Create your account</h2>
+				<h2 className='text-center text-3xl sm:text-4xl lg:text-5xl font-light text-white mb-2 tracking-tight'>
+					Create Account
+				</h2>
+				<p className='text-center text-sm sm:text-base text-zinc-400 font-light'>
+					Join us today and get started
+				</p>
 			</motion.div>
 
+			{/* Form Section */}
 			<motion.div
-				className='mt-8 sm:mx-auto sm:w-full sm:max-w-md'
+				className='mt-8 sm:mt-10 sm:mx-auto sm:w-full sm:max-w-md'
 				initial={{ opacity: 0, y: 20 }}
 				animate={{ opacity: 1, y: 0 }}
-				transition={{ duration: 0.8, delay: 0.2 }}
+				transition={{ duration: 0.6, delay: 0.2 }}
 			>
-				<div className='bg-gray-800 py-8 px-4 shadow sm:rounded-lg sm:px-10'>
+				<div className='bg-zinc-950 border border-zinc-800/50 py-8 sm:py-10 px-6 sm:px-10'>
 					<form onSubmit={handleSubmit} className='space-y-6'>
+						{/* Name Field */}
 						<div>
-							<label htmlFor='name' className='block text-sm font-medium text-gray-300'>
-								Full name
+							<label htmlFor='name' className='block text-xs uppercase tracking-widest text-zinc-500 font-light mb-2'>
+								Full Name
 							</label>
-							<div className='mt-1 relative rounded-md shadow-sm'>
-								<div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
-									<User className='h-5 w-5 text-gray-400' aria-hidden='true' />
+							<div className='relative'>
+								<div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none'>
+									<User className='h-4 w-4 text-zinc-500' strokeWidth={1.5} />
 								</div>
 								<input
 									id='name'
@@ -52,20 +60,23 @@ const SignUpPage = () => {
 									required
 									value={formData.name}
 									onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-									className='block w-full px-3 py-2 pl-10 bg-gray-700 border border-gray-600 rounded-md shadow-sm
-									 placeholder-gray-400 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm'
+									className='block w-full px-4 py-3 pl-11 bg-black/50 border border-zinc-800 
+									text-white placeholder-zinc-600 
+									focus:outline-none focus:border-zinc-700 focus:ring-1 focus:ring-zinc-700
+									transition-all duration-300 font-light'
 									placeholder='John Doe'
 								/>
 							</div>
 						</div>
 
+						{/* Email Field */}
 						<div>
-							<label htmlFor='email' className='block text-sm font-medium text-gray-300'>
-								Email address
+							<label htmlFor='email' className='block text-xs uppercase tracking-widest text-zinc-500 font-light mb-2'>
+								Email Address
 							</label>
-							<div className='mt-1 relative rounded-md shadow-sm'>
-								<div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
-									<Mail className='h-5 w-5 text-gray-400' aria-hidden='true' />
+							<div className='relative'>
+								<div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none'>
+									<Mail className='h-4 w-4 text-zinc-500' strokeWidth={1.5} />
 								</div>
 								<input
 									id='email'
@@ -73,22 +84,23 @@ const SignUpPage = () => {
 									required
 									value={formData.email}
 									onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-									className=' block w-full px-3 py-2 pl-10 bg-gray-700 border border-gray-600 
-									rounded-md shadow-sm
-									 placeholder-gray-400 focus:outline-none focus:ring-emerald-500 
-									 focus:border-emerald-500 sm:text-sm'
+									className='block w-full px-4 py-3 pl-11 bg-black/50 border border-zinc-800 
+									text-white placeholder-zinc-600 
+									focus:outline-none focus:border-zinc-700 focus:ring-1 focus:ring-zinc-700
+									transition-all duration-300 font-light'
 									placeholder='you@example.com'
 								/>
 							</div>
 						</div>
 
+						{/* Password Field */}
 						<div>
-							<label htmlFor='password' className='block text-sm font-medium text-gray-300'>
+							<label htmlFor='password' className='block text-xs uppercase tracking-widest text-zinc-500 font-light mb-2'>
 								Password
 							</label>
-							<div className='mt-1 relative rounded-md shadow-sm'>
-								<div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
-									<Lock className='h-5 w-5 text-gray-400' aria-hidden='true' />
+							<div className='relative'>
+								<div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none'>
+									<Lock className='h-4 w-4 text-zinc-500' strokeWidth={1.5} />
 								</div>
 								<input
 									id='password'
@@ -96,20 +108,23 @@ const SignUpPage = () => {
 									required
 									value={formData.password}
 									onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-									className=' block w-full px-3 py-2 pl-10 bg-gray-700 border border-gray-600 
-									rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm'
+									className='block w-full px-4 py-3 pl-11 bg-black/50 border border-zinc-800 
+									text-white placeholder-zinc-600
+									focus:outline-none focus:border-zinc-700 focus:ring-1 focus:ring-zinc-700
+									transition-all duration-300 font-light'
 									placeholder='••••••••'
 								/>
 							</div>
 						</div>
 
+						{/* Confirm Password Field */}
 						<div>
-							<label htmlFor='confirmPassword' className='block text-sm font-medium text-gray-300'>
+							<label htmlFor='confirmPassword' className='block text-xs uppercase tracking-widest text-zinc-500 font-light mb-2'>
 								Confirm Password
 							</label>
-							<div className='mt-1 relative rounded-md shadow-sm'>
-								<div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
-									<Lock className='h-5 w-5 text-gray-400' aria-hidden='true' />
+							<div className='relative'>
+								<div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none'>
+									<Lock className='h-4 w-4 text-zinc-500' strokeWidth={1.5} />
 								</div>
 								<input
 									id='confirmPassword'
@@ -117,44 +132,74 @@ const SignUpPage = () => {
 									required
 									value={formData.confirmPassword}
 									onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-									className=' block w-full px-3 py-2 pl-10 bg-gray-700 border
-									 border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm'
+									className='block w-full px-4 py-3 pl-11 bg-black/50 border border-zinc-800 
+									text-white placeholder-zinc-600
+									focus:outline-none focus:border-zinc-700 focus:ring-1 focus:ring-zinc-700
+									transition-all duration-300 font-light'
 									placeholder='••••••••'
 								/>
 							</div>
 						</div>
 
+						{/* Submit Button */}
 						<button
 							type='submit'
-							className='w-full flex justify-center py-2 px-4 border border-transparent 
-							rounded-md shadow-sm text-sm font-medium text-white bg-emerald-600
-							 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2
-							  focus:ring-emerald-500 transition duration-150 ease-in-out disabled:opacity-50'
+							className='group relative w-full flex justify-center items-center py-3 px-4 
+							bg-white text-black text-sm font-medium uppercase tracking-wide
+							hover:bg-zinc-900 hover:text-white border border-white hover:border-zinc-700
+							transition-all duration-300 overflow-hidden
+							disabled:opacity-50 disabled:cursor-not-allowed mt-8'
 							disabled={loading}
 						>
+							<div className='absolute inset-0 bg-zinc-900 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300' />
 							{loading ? (
 								<>
-									<Loader className='mr-2 h-5 w-5 animate-spin' aria-hidden='true' />
-									Loading...
+									<Loader className='mr-2 h-4 w-4 animate-spin relative z-10' strokeWidth={1.5} />
+									<span className='relative z-10'>Creating Account...</span>
 								</>
 							) : (
 								<>
-									<UserPlus className='mr-2 h-5 w-5' aria-hidden='true' />
-									Sign up
+									<UserPlus className='mr-2 h-4 w-4 relative z-10' strokeWidth={1.5} />
+									<span className='relative z-10'>Create Account</span>
 								</>
 							)}
 						</button>
 					</form>
 
-					<p className='mt-8 text-center text-sm text-gray-400'>
-						Already have an account?{" "}
-						<Link to='/login' className='font-medium text-emerald-400 hover:text-emerald-300'>
-							Login here <ArrowRight className='inline h-4 w-4' />
+					{/* Divider */}
+					<div className='mt-8 mb-6'>
+						<div className='relative'>
+							<div className='absolute inset-0 flex items-center'>
+								<div className='w-full border-t border-zinc-800'></div>
+							</div>
+							<div className='relative flex justify-center text-xs uppercase tracking-widest'>
+								<span className='px-4 bg-zinc-950 text-zinc-600 font-light'>Already a Member?</span>
+							</div>
+						</div>
+					</div>
+
+					{/* Login Link */}
+					<div className='text-center'>
+						<p className='text-sm text-zinc-400 font-light mb-3'>
+							Already have an account?
+						</p>
+						<Link 
+							to='/login' 
+							className='inline-flex items-center text-sm text-white hover:text-zinc-300 transition-colors group font-light tracking-wide'
+						>
+							<span>Sign In</span>
+							<ArrowRight className='ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform' strokeWidth={1.5} />
 						</Link>
-					</p>
+					</div>
 				</div>
+
+				{/* Additional Help Text */}
+				<p className='mt-6 text-center text-xs text-zinc-600 font-light'>
+					By creating an account, you agree to our Terms of Service and Privacy Policy
+				</p>
 			</motion.div>
 		</div>
 	);
 };
+
 export default SignUpPage;
