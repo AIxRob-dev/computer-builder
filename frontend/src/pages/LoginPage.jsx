@@ -17,31 +17,39 @@ const LoginPage = () => {
 	};
 
 	return (
-		<div className='flex flex-col justify-center py-12 sm:px-6 lg:px-8'>
+		<div className='min-h-screen bg-gradient-to-br from-zinc-950 via-black to-zinc-900 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8'>
+			{/* Header Section */}
 			<motion.div
 				className='sm:mx-auto sm:w-full sm:max-w-md'
 				initial={{ opacity: 0, y: -20 }}
 				animate={{ opacity: 1, y: 0 }}
-				transition={{ duration: 0.8 }}
+				transition={{ duration: 0.6 }}
 			>
-				<h2 className='mt-6 text-center text-3xl font-extrabold text-emerald-400'>Create your account</h2>
+				<h2 className='text-center text-3xl sm:text-4xl lg:text-5xl font-light text-white mb-2 tracking-tight'>
+					Welcome Back
+				</h2>
+				<p className='text-center text-sm sm:text-base text-zinc-400 font-light'>
+					Sign in to your account
+				</p>
 			</motion.div>
 
+			{/* Form Section */}
 			<motion.div
-				className='mt-8 sm:mx-auto sm:w-full sm:max-w-md'
+				className='mt-8 sm:mt-10 sm:mx-auto sm:w-full sm:max-w-md'
 				initial={{ opacity: 0, y: 20 }}
 				animate={{ opacity: 1, y: 0 }}
-				transition={{ duration: 0.8, delay: 0.2 }}
+				transition={{ duration: 0.6, delay: 0.2 }}
 			>
-				<div className='bg-gray-800 py-8 px-4 shadow sm:rounded-lg sm:px-10'>
+				<div className='bg-zinc-950 border border-zinc-800/50 py-8 sm:py-10 px-6 sm:px-10'>
 					<form onSubmit={handleSubmit} className='space-y-6'>
+						{/* Email Field */}
 						<div>
-							<label htmlFor='email' className='block text-sm font-medium text-gray-300'>
-								Email address
+							<label htmlFor='email' className='block text-xs uppercase tracking-widest text-zinc-500 font-light mb-2'>
+								Email Address
 							</label>
-							<div className='mt-1 relative rounded-md shadow-sm'>
-								<div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
-									<Mail className='h-5 w-5 text-gray-400' aria-hidden='true' />
+							<div className='relative'>
+								<div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none'>
+									<Mail className='h-4 w-4 text-zinc-500' strokeWidth={1.5} />
 								</div>
 								<input
 									id='email'
@@ -49,22 +57,23 @@ const LoginPage = () => {
 									required
 									value={email}
 									onChange={(e) => setEmail(e.target.value)}
-									className=' block w-full px-3 py-2 pl-10 bg-gray-700 border border-gray-600 
-									rounded-md shadow-sm
-									 placeholder-gray-400 focus:outline-none focus:ring-emerald-500 
-									 focus:border-emerald-500 sm:text-sm'
+									className='block w-full px-4 py-3 pl-11 bg-black/50 border border-zinc-800 
+									text-white placeholder-zinc-600 
+									focus:outline-none focus:border-zinc-700 focus:ring-1 focus:ring-zinc-700
+									transition-all duration-300 font-light'
 									placeholder='you@example.com'
 								/>
 							</div>
 						</div>
 
+						{/* Password Field */}
 						<div>
-							<label htmlFor='password' className='block text-sm font-medium text-gray-300'>
+							<label htmlFor='password' className='block text-xs uppercase tracking-widest text-zinc-500 font-light mb-2'>
 								Password
 							</label>
-							<div className='mt-1 relative rounded-md shadow-sm'>
-								<div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
-									<Lock className='h-5 w-5 text-gray-400' aria-hidden='true' />
+							<div className='relative'>
+								<div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none'>
+									<Lock className='h-4 w-4 text-zinc-500' strokeWidth={1.5} />
 								</div>
 								<input
 									id='password'
@@ -72,44 +81,74 @@ const LoginPage = () => {
 									required
 									value={password}
 									onChange={(e) => setPassword(e.target.value)}
-									className=' block w-full px-3 py-2 pl-10 bg-gray-700 border border-gray-600 
-									rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm'
+									className='block w-full px-4 py-3 pl-11 bg-black/50 border border-zinc-800 
+									text-white placeholder-zinc-600
+									focus:outline-none focus:border-zinc-700 focus:ring-1 focus:ring-zinc-700
+									transition-all duration-300 font-light'
 									placeholder='••••••••'
 								/>
 							</div>
 						</div>
 
+						{/* Submit Button */}
 						<button
 							type='submit'
-							className='w-full flex justify-center py-2 px-4 border border-transparent 
-							rounded-md shadow-sm text-sm font-medium text-white bg-emerald-600
-							 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2
-							  focus:ring-emerald-500 transition duration-150 ease-in-out disabled:opacity-50'
+							className='group relative w-full flex justify-center items-center py-3 px-4 
+							bg-white text-black text-sm font-medium uppercase tracking-wide
+							hover:bg-zinc-900 hover:text-white border border-white hover:border-zinc-700
+							transition-all duration-300 overflow-hidden
+							disabled:opacity-50 disabled:cursor-not-allowed mt-8'
 							disabled={loading}
 						>
+							<div className='absolute inset-0 bg-zinc-900 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300' />
 							{loading ? (
 								<>
-									<Loader className='mr-2 h-5 w-5 animate-spin' aria-hidden='true' />
-									Loading...
+									<Loader className='mr-2 h-4 w-4 animate-spin relative z-10' strokeWidth={1.5} />
+									<span className='relative z-10'>Signing In...</span>
 								</>
 							) : (
 								<>
-									<LogIn className='mr-2 h-5 w-5' aria-hidden='true' />
-									Login
+									<LogIn className='mr-2 h-4 w-4 relative z-10' strokeWidth={1.5} />
+									<span className='relative z-10'>Sign In</span>
 								</>
 							)}
 						</button>
 					</form>
 
-					<p className='mt-8 text-center text-sm text-gray-400'>
-						Not a member?{" "}
-						<Link to='/signup' className='font-medium text-emerald-400 hover:text-emerald-300'>
-							Sign up now <ArrowRight className='inline h-4 w-4' />
+					{/* Divider */}
+					<div className='mt-8 mb-6'>
+						<div className='relative'>
+							<div className='absolute inset-0 flex items-center'>
+								<div className='w-full border-t border-zinc-800'></div>
+							</div>
+							<div className='relative flex justify-center text-xs uppercase tracking-widest'>
+								<span className='px-4 bg-zinc-950 text-zinc-600 font-light'>New Here?</span>
+							</div>
+						</div>
+					</div>
+
+					{/* Sign Up Link */}
+					<div className='text-center'>
+						<p className='text-sm text-zinc-400 font-light mb-3'>
+							Don't have an account yet?
+						</p>
+						<Link 
+							to='/signup' 
+							className='inline-flex items-center text-sm text-white hover:text-zinc-300 transition-colors group font-light tracking-wide'
+						>
+							<span>Create Account</span>
+							<ArrowRight className='ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform' strokeWidth={1.5} />
 						</Link>
-					</p>
+					</div>
 				</div>
+
+				{/* Additional Help Text */}
+				<p className='mt-6 text-center text-xs text-zinc-600 font-light'>
+					By signing in, you agree to our Terms of Service and Privacy Policy
+				</p>
 			</motion.div>
 		</div>
 	);
 };
+
 export default LoginPage;
