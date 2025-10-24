@@ -10,6 +10,7 @@ const BestSellerProducts = ({ bestSellerProducts }) => {
     const [itemsPerPage, setItemsPerPage] = useState(4);
     const [touchStart, setTouchStart] = useState(0);
     const [touchEnd, setTouchEnd] = useState(0);
+    const [isAutoPlaying, setIsAutoPlaying] = useState(true);
 
     const { addToCart } = useCartStore();
     const { user } = useUserStore();
@@ -28,8 +29,24 @@ const BestSellerProducts = ({ bestSellerProducts }) => {
         return () => window.removeEventListener("resize", handleResize);
     }, []);
 
+    // Auto-play functionality
+    useEffect(() => {
+        if (!isAutoPlaying || bestSellerProducts.length <= itemsPerPage) return;
+        
+        const timer = setInterval(() => {
+            setCurrentIndex((prevIndex) => {
+                const maxIndex = bestSellerProducts.length - itemsPerPage;
+                // Loop back to start when reaching the end
+                return prevIndex >= maxIndex ? 0 : prevIndex + 1;
+            });
+        }, 3500); // Slide every 3.5 seconds
+
+        return () => clearInterval(timer);
+    }, [isAutoPlaying, bestSellerProducts.length, itemsPerPage]);
+
     const handleTouchStart = (e) => {
         setTouchStart(e.targetTouches[0].clientX);
+        setIsAutoPlaying(false);
     };
 
     const handleTouchMove = (e) => {
@@ -52,16 +69,23 @@ const BestSellerProducts = ({ bestSellerProducts }) => {
 
         setTouchStart(0);
         setTouchEnd(0);
+        
+        // Resume auto-play after 5 seconds
+        setTimeout(() => setIsAutoPlaying(true), 5000);
     };
 
     const nextSlide = () => {
         setCurrentIndex((prevIndex) => 
             Math.min(prevIndex + itemsPerPage, bestSellerProducts.length - itemsPerPage)
         );
+        setIsAutoPlaying(false);
+        setTimeout(() => setIsAutoPlaying(true), 5000);
     };
 
     const prevSlide = () => {
         setCurrentIndex((prevIndex) => Math.max(prevIndex - itemsPerPage, 0));
+        setIsAutoPlaying(false);
+        setTimeout(() => setIsAutoPlaying(true), 5000);
     };
 
     const handleAddToCart = (e, product) => {
@@ -74,6 +98,7 @@ const BestSellerProducts = ({ bestSellerProducts }) => {
             return;
         } else {
             addToCart(product);
+            toast.success("Added to cart!");
         }
     };
 
@@ -90,29 +115,45 @@ const BestSellerProducts = ({ bestSellerProducts }) => {
         navigate(`/product/${productId}`);
     };
 
+    const goToSlide = (index) => {
+        setCurrentIndex(index * itemsPerPage);
+        setIsAutoPlaying(false);
+        setTimeout(() => setIsAutoPlaying(true), 5000);
+    };
+
     const isStartDisabled = currentIndex === 0;
     const isEndDisabled = currentIndex >= bestSellerProducts.length - itemsPerPage;
 
     return (
-        <div className='py-8 sm:py-12 lg:py-16 bg-gray-900/50'>
-            <div className='container mx-auto px-4'>
+        <section className='py-10 sm:py-14 lg:py-20 relative'>
+            {/* Subtle background accent */}
+            <div className='absolute inset-0 bg-gradient-to-b from-zinc-900/30 via-transparent to-zinc-900/30 pointer-events-none' />
+            
+            <div className='container mx-auto px-3 sm:px-4 lg:px-6 relative z-10'>
                 {/* Section Header */}
-                <div className='text-center mb-8 sm:mb-10 lg:mb-12'>
+                <div className='text-center mb-8 sm:mb-10 lg:mb-14'>
                     <div className='flex items-center justify-center gap-3 mb-3 sm:mb-4'>
-                        <TrendingUp className='w-8 h-8 sm:w-10 sm:h-10 text-blue-400' />
-                        <h2 className='text-3xl sm:text-4xl lg:text-5xl font-bold text-white'>
+                        {/* Minimalist trending icon */}
+                        <div className='p-2 rounded-full bg-white/5 backdrop-blur-sm border border-white/10'>
+                            <TrendingUp className='w-5 h-5 sm:w-6 sm:h-6 text-white' strokeWidth={1.5} />
+                        </div>
+                        <h2 className='text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light text-white tracking-tight'>
                             Best Sellers
                         </h2>
                     </div>
-                    <p className='text-base sm:text-lg text-gray-400 max-w-2xl mx-auto px-4'>
+                    <p className='text-sm sm:text-base lg:text-lg text-zinc-400 max-w-2xl mx-auto font-light'>
                         Our most popular products loved by customers
                     </p>
                 </div>
 
                 <div className='relative'>
-                    {/* Swipe instruction for mobile */}
-                    <div className='md:hidden text-center mb-4'>
-                        <p className='text-sm text-gray-500'>← Swipe to browse →</p>
+                    {/* Auto-play indicator for mobile */}
+                    <div className='sm:hidden text-center mb-4'>
+                        <div className='flex items-center justify-center gap-2 text-zinc-500 text-[10px] uppercase tracking-widest'>
+                            <div className='w-6 h-[1px] bg-zinc-700' />
+                            <span>{isAutoPlaying ? 'Auto Playing' : 'Swipe'}</span>
+                            <div className='w-6 h-[1px] bg-zinc-700' />
+                        </div>
                     </div>
 
                     <div 
@@ -120,9 +161,11 @@ const BestSellerProducts = ({ bestSellerProducts }) => {
                         onTouchStart={handleTouchStart}
                         onTouchMove={handleTouchMove}
                         onTouchEnd={handleTouchEnd}
+                        onMouseEnter={() => setIsAutoPlaying(false)}
+                        onMouseLeave={() => setIsAutoPlaying(true)}
                     >
                         <div
-                            className='flex transition-transform duration-500 ease-in-out'
+                            className='flex transition-transform duration-700 ease-out'
                             style={{ transform: `translateX(-${currentIndex * (100 / itemsPerPage)}%)` }}
                         >
                             {bestSellerProducts?.map((product) => (
@@ -130,99 +173,121 @@ const BestSellerProducts = ({ bestSellerProducts }) => {
                                     key={product._id} 
                                     className='w-full sm:w-1/2 lg:w-1/3 xl:w-1/4 flex-shrink-0 px-2 sm:px-3'
                                 >
+                                    {/* Premium Best Seller Card */}
                                     <div 
-                                        className='bg-gray-800 rounded-lg shadow-xl overflow-hidden h-full transition-all duration-300 hover:shadow-2xl border border-blue-500/30 hover:border-blue-400/50 group cursor-pointer relative'
+                                        className='group w-full max-w-sm mx-auto flex flex-col overflow-hidden cursor-pointer 
+                                        bg-zinc-950 border border-zinc-800/50 hover:border-zinc-700 
+                                        transition-all duration-500 hover:shadow-2xl hover:shadow-zinc-900/50 relative'
                                         onClick={() => handleCardClick(product._id)}
                                     >
                                         {/* Best Seller Badge */}
-                                        <div className='absolute top-3 right-3 z-10 bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg flex items-center gap-1'>
-                                            <TrendingUp className='w-3 h-3' />
+                                        <div className='absolute top-3 right-3 z-10 bg-white/10 backdrop-blur-md text-white px-3 py-1.5 border border-white/20 text-[10px] font-medium uppercase tracking-wider flex items-center gap-1.5'>
+                                            <TrendingUp className='w-3 h-3' strokeWidth={1.5} />
                                             <span>Best Seller</span>
                                         </div>
 
                                         {/* Image Container */}
-                                        <div className='relative overflow-hidden bg-gray-900'>
-                                            <img
-                                                src={product.image}
+                                        <div className='relative w-full aspect-[3/4] overflow-hidden bg-zinc-900/30'>
+                                            <img 
+                                                className='w-full h-full object-contain p-4 transition-all duration-700 ease-out group-hover:scale-105 group-hover:p-2' 
+                                                src={product.image} 
                                                 alt={product.name}
-                                                className='w-full h-48 sm:h-56 lg:h-64 object-cover transition-transform duration-500 ease-in-out group-hover:scale-110'
+                                                loading="lazy"
                                             />
-                                            <div className='absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300' />
+                                            {/* Subtle hover overlay */}
+                                            <div className='absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500' />
                                         </div>
 
                                         {/* Product Info */}
-                                        <div className='p-3 sm:p-4 lg:p-5 flex flex-col'>
-                                            <h3 className='text-base sm:text-lg font-semibold mb-2 text-white line-clamp-2 min-h-[3rem]'>
+                                        <div className='flex flex-col flex-grow p-4 sm:p-5 lg:p-6'>
+                                            {/* Product Name */}
+                                            <h3 className='text-base sm:text-lg font-light tracking-wide text-white mb-3 line-clamp-2 min-h-[3rem] group-hover:text-zinc-300 transition-colors duration-300'>
                                                 {product.name}
                                             </h3>
-                                            <p className='text-2xl sm:text-3xl font-bold text-white mb-3 sm:mb-4'>
-                                                ${product.price.toFixed(2)}
-                                            </p>
                                             
-                                            {/* Action Buttons */}
-                                            <div className='flex gap-2 sm:gap-3 mt-auto'>
-                                                <button
-                                                    onClick={(e) => handleAddToCart(e, product)}
-                                                    className='flex-1 bg-blue-500 text-white font-semibold py-2 sm:py-2.5 lg:py-3 px-3 sm:px-4 rounded-none
-                                                    transition-all duration-300 flex items-center justify-center
-                                                    hover:bg-blue-600 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl text-xs sm:text-sm'
-                                                >
-                                                    <ShoppingCart className='w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2' />
-                                                    <span className='hidden sm:inline'>Add to Cart</span>
-                                                    <span className='sm:hidden'>Cart</span>
-                                                </button>
+                                            <div className='mt-auto space-y-4'>
+                                                {/* Price */}
+                                                <div className='flex items-baseline'>
+                                                    <span className='text-2xl sm:text-3xl font-light text-white tracking-tight'>
+                                                        ${product.price}
+                                                    </span>
+                                                </div>
 
-                                                <button
-                                                    onClick={(e) => handleWhatsApp(e, product)}
-                                                    className='flex items-center justify-center rounded-none bg-green-600 text-white px-3 sm:px-4 py-2 sm:py-2.5 lg:py-3 text-xs sm:text-sm font-semibold
-                                                    hover:bg-green-700 transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl'
-                                                    title="Chat on WhatsApp"
-                                                >
-                                                    <MessageCircle className='w-4 h-4 sm:w-5 sm:h-5' />
-                                                </button>
+                                                {/* Action Buttons */}
+                                                <div className='flex gap-2 sm:gap-3'>
+                                                    {/* Add to Cart Button */}
+                                                    <button
+                                                        className='flex-1 flex items-center justify-center bg-white text-black px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-medium uppercase tracking-wide
+                                                        hover:bg-zinc-900 hover:text-white border border-white hover:border-zinc-700
+                                                        transition-all duration-300 transform active:scale-95 group/btn overflow-hidden relative'
+                                                        onClick={(e) => handleAddToCart(e, product)}
+                                                    >
+                                                        <div className='absolute inset-0 bg-zinc-900 transform translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300' />
+                                                        <ShoppingCart className='w-4 h-4 mr-2 relative z-10' strokeWidth={1.5} />
+                                                        <span className='relative z-10'>Add</span>
+                                                    </button>
+
+                                                    {/* WhatsApp Button */}
+                                                    <button
+                                                        className='flex items-center justify-center bg-zinc-900 text-white px-3 sm:px-4 py-2.5 sm:py-3 
+                                                        border border-zinc-800 hover:border-green-600 hover:bg-green-600/10
+                                                        transition-all duration-300 transform active:scale-95'
+                                                        onClick={(e) => handleWhatsApp(e, product)}
+                                                        title="Chat on WhatsApp"
+                                                    >
+                                                        <MessageCircle className='w-4 h-4' strokeWidth={1.5} />
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
+
+                                        {/* Bottom accent line */}
+                                        <div className='h-[1px] w-0 bg-white group-hover:w-full transition-all duration-500' />
                                     </div>
                                 </div>
                             ))}
                         </div>
                     </div>
 
-                    {/* Navigation Buttons */}
+                    {/* Navigation Buttons - Hidden on mobile */}
                     <button
                         onClick={prevSlide}
                         disabled={isStartDisabled}
-                        className={`hidden md:block absolute top-1/2 -left-4 lg:-left-5 transform -translate-y-1/2 p-2 lg:p-3 rounded-full transition-all duration-300 z-10 ${
+                        className={`hidden sm:flex absolute top-1/2 -left-3 lg:-left-4 transform -translate-y-1/2 
+                        w-10 h-10 lg:w-12 lg:h-12 items-center justify-center z-10
+                        transition-all duration-300 ${
                             isStartDisabled 
-                                ? "bg-gray-700 cursor-not-allowed opacity-50" 
-                                : "bg-white/10 backdrop-blur-sm hover:bg-white/20 border border-white/20 hover:border-white/40"
+                                ? "opacity-30 cursor-not-allowed" 
+                                : "bg-white/5 backdrop-blur-md border border-white/10 hover:bg-white/10 hover:border-white/20"
                         }`}
                     >
-                        <ChevronLeft className='w-5 h-5 lg:w-6 lg:h-6 text-white' />
+                        <ChevronLeft className='w-5 h-5 lg:w-6 lg:h-6 text-white' strokeWidth={1.5} />
                     </button>
 
                     <button
                         onClick={nextSlide}
                         disabled={isEndDisabled}
-                        className={`hidden md:block absolute top-1/2 -right-4 lg:-right-5 transform -translate-y-1/2 p-2 lg:p-3 rounded-full transition-all duration-300 z-10 ${
+                        className={`hidden sm:flex absolute top-1/2 -right-3 lg:-right-4 transform -translate-y-1/2 
+                        w-10 h-10 lg:w-12 lg:h-12 items-center justify-center z-10
+                        transition-all duration-300 ${
                             isEndDisabled 
-                                ? "bg-gray-700 cursor-not-allowed opacity-50" 
-                                : "bg-white/10 backdrop-blur-sm hover:bg-white/20 border border-white/20 hover:border-white/40"
+                                ? "opacity-30 cursor-not-allowed" 
+                                : "bg-white/5 backdrop-blur-md border border-white/10 hover:bg-white/10 hover:border-white/20"
                         }`}
                     >
-                        <ChevronRight className='w-5 h-5 lg:w-6 lg:h-6 text-white' />
+                        <ChevronRight className='w-5 h-5 lg:w-6 lg:h-6 text-white' strokeWidth={1.5} />
                     </button>
 
-                    {/* Dot Indicators for mobile */}
-                    <div className='flex justify-center mt-6 space-x-2 md:hidden'>
+                    {/* Minimalist Progress Indicators */}
+                    <div className='flex justify-center mt-6 sm:mt-8 gap-1.5'>
                         {Array.from({ length: Math.ceil(bestSellerProducts.length / itemsPerPage) }).map((_, index) => (
                             <button
                                 key={index}
-                                onClick={() => setCurrentIndex(index * itemsPerPage)}
-                                className={`transition-all duration-300 rounded-full ${
+                                onClick={() => goToSlide(index)}
+                                className={`transition-all duration-300 ${
                                     Math.floor(currentIndex / itemsPerPage) === index
-                                        ? 'w-8 h-2 bg-blue-400'
-                                        : 'w-2 h-2 bg-white/40'
+                                        ? 'w-8 sm:w-10 h-0.5 bg-white'
+                                        : 'w-6 sm:w-8 h-0.5 bg-white/30 hover:bg-white/50'
                                 }`}
                                 aria-label={`Go to page ${index + 1}`}
                             />
@@ -230,7 +295,7 @@ const BestSellerProducts = ({ bestSellerProducts }) => {
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
     );
 };
 
