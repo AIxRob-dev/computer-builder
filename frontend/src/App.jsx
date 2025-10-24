@@ -36,16 +36,30 @@ function App() {
     if (checkingAuth) return <LoadingSpinner />;
 
     return (
-        <div className='min-h-screen bg-gray-900 text-white relative overflow-hidden flex flex-col'>
-            {/* Background gradient */}
-            <div className='absolute inset-0 overflow-hidden'>
-                <div className='absolute inset-0'>
-                    <div className='absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-[radial-gradient(ellipse_at_top,rgba(16,185,129,0.3)_0%,rgba(10,80,60,0.2)_45%,rgba(0,0,0,0.1)_100%)]' />
-                </div>
+        <div className='min-h-screen bg-black text-white relative overflow-hidden flex flex-col'>
+            {/* Premium Black Background with Subtle Gradient */}
+            <div className='absolute inset-0 overflow-hidden pointer-events-none'>
+                <div className='absolute inset-0 bg-gradient-to-br from-zinc-950 via-black to-zinc-900' />
+                
+                {/* Subtle noise texture overlay for depth */}
+                <div className='absolute inset-0 opacity-[0.015]' 
+                     style={{
+                         backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+                     }}
+                />
+                
+                {/* Minimal accent glow - top */}
+                <div className='absolute top-0 left-1/4 w-96 h-96 bg-white/[0.02] rounded-full blur-3xl' />
+                
+                {/* Minimal accent glow - bottom right */}
+                <div className='absolute bottom-0 right-1/4 w-96 h-96 bg-zinc-400/[0.01] rounded-full blur-3xl' />
             </div>
 
-            <div className='relative z-50 pt-20 flex-grow'>
-                <Navbar />
+            {/* Navbar */}
+            <Navbar />
+            
+            {/* Main Content */}
+            <div className='relative z-10 pt-12 sm:pt-14 md:pt-16 flex-grow'>
                 <ScrollToTop />
                 <Routes>
                     <Route path='/' element={<HomePage />} />
@@ -70,7 +84,60 @@ function App() {
             {/* Footer */}
             <Footer />
             
-            <Toaster />
+            {/* Enhanced Toast Notifications - Premium Dark Theme */}
+            <Toaster 
+                position="top-center"
+                reverseOrder={false}
+                gutter={8}
+                containerClassName=""
+                containerStyle={{}}
+                toastOptions={{
+                    // Default options
+                    className: '',
+                    duration: 3000,
+                    style: {
+                        background: '#18181b', // zinc-900
+                        color: '#ffffff',
+                        border: '1px solid #27272a', // zinc-800
+                        padding: '16px 20px',
+                        fontSize: '14px',
+                        fontWeight: '300', // font-light
+                        letterSpacing: '0.025em',
+                        boxShadow: '0 10px 40px rgba(0, 0, 0, 0.5)',
+                        backdropFilter: 'blur(10px)',
+                        maxWidth: '500px',
+                    },
+                    // Success toast styling
+                    success: {
+                        duration: 3000,
+                        iconTheme: {
+                            primary: '#ffffff',
+                            secondary: '#18181b',
+                        },
+                        style: {
+                            border: '1px solid #3f3f46', // zinc-700
+                        },
+                    },
+                    // Error toast styling
+                    error: {
+                        duration: 4000,
+                        iconTheme: {
+                            primary: '#ffffff',
+                            secondary: '#18181b',
+                        },
+                        style: {
+                            border: '1px solid #3f3f46', // zinc-700
+                        },
+                    },
+                    // Loading toast styling
+                    loading: {
+                        iconTheme: {
+                            primary: '#71717a', // zinc-500
+                            secondary: '#18181b',
+                        },
+                    },
+                }}
+            />
         </div>
     );
 }
