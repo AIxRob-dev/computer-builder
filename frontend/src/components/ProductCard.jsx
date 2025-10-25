@@ -54,10 +54,10 @@ const ProductCard = ({ product }) => {
 	return (
 		<div 
 			className={`group w-full max-w-sm mx-auto flex flex-col overflow-hidden cursor-pointer 
-			bg-zinc-950 border transition-all duration-500 relative
+			bg-zinc-950 border will-change-transform
 			${isOutOfStock 
-				? 'border-zinc-900/50 opacity-60 hover:opacity-70' 
-				: 'border-zinc-800/50 hover:border-zinc-700 hover:shadow-2xl hover:shadow-zinc-900/50'
+				? 'border-zinc-900/50 opacity-60 hover:opacity-70 transition-opacity duration-300' 
+				: 'border-zinc-800/50 hover:border-zinc-700 hover:shadow-2xl hover:shadow-zinc-900/50 transition-[border-color,box-shadow] duration-500'
 			}`}
 			onClick={handleCardClick}
 		>
@@ -76,14 +76,18 @@ const ProductCard = ({ product }) => {
 			{/* Image Container */}
 			<div className={`relative w-full aspect-[3/4] overflow-hidden bg-zinc-900/30 ${isOutOfStock ? 'mt-10' : ''}`}>
 				<img 
-					className={`w-full h-full object-contain p-4 transition-all duration-700 ease-out 
+					className={`w-full h-full object-contain p-4 will-change-transform
 					${isOutOfStock 
 						? 'grayscale opacity-40' 
-						: 'group-hover:scale-105 group-hover:p-2'
+						: 'group-hover:scale-105 group-hover:p-2 transition-[transform,padding] duration-700 ease-out'
 					}`}
 					src={product.image} 
 					alt={product.name}
 					loading="lazy"
+					decoding="async"
+					fetchpriority="low"
+					width="400"
+					height="533"
 				/>
 				
 				{/* Out of Stock Overlay */}
@@ -107,10 +111,10 @@ const ProductCard = ({ product }) => {
 			{/* Product Info */}
 			<div className='flex flex-col flex-grow p-4 sm:p-5 lg:p-6'>
 				{/* Product Name */}
-				<h3 className={`text-base sm:text-lg font-light tracking-wide mb-3 line-clamp-2 min-h-[3rem] transition-colors duration-300
+				<h3 className={`text-base sm:text-lg font-light tracking-wide mb-3 line-clamp-2 min-h-[3rem]
 					${isOutOfStock 
 						? 'text-zinc-600' 
-						: 'text-white group-hover:text-zinc-300'
+						: 'text-white group-hover:text-zinc-300 transition-colors duration-300'
 					}`}
 				>
 					{product.name}
@@ -131,12 +135,12 @@ const ProductCard = ({ product }) => {
 						{/* Add to Cart Button */}
 						<button
 							className={`flex-1 flex items-center justify-center px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-medium uppercase tracking-wide
-							transition-all duration-300 transform active:scale-95 overflow-hidden relative
+							transform active:scale-95 overflow-hidden relative will-change-transform
 							${isOutOfStock
 								? 'bg-zinc-900 text-zinc-600 border border-zinc-800 cursor-not-allowed'
 								: isInCart && user
-									? 'bg-zinc-900 text-white border border-zinc-800 cursor-default'
-									: 'bg-white text-black hover:bg-zinc-900 hover:text-white border border-white hover:border-zinc-700 group/btn'
+									? 'bg-zinc-900 text-white border border-zinc-800 cursor-default transition-none'
+									: 'bg-white text-black hover:bg-zinc-900 hover:text-white border border-white hover:border-zinc-700 group/btn transition-[background-color,color,border-color] duration-300'
 							}`}
 							onClick={handleAddToCart}
 							disabled={(isInCart && user) || isOutOfStock}
@@ -148,7 +152,7 @@ const ProductCard = ({ product }) => {
 								</>
 							) : !isInCart || !user ? (
 								<>
-									<div className='absolute inset-0 bg-zinc-900 transform translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300' />
+									<div className='absolute inset-0 bg-zinc-900 transform translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300 will-change-transform' />
 									<ShoppingCart className='w-4 h-4 mr-2 relative z-10' strokeWidth={1.5} />
 									<span className='relative z-10'>Add</span>
 								</>
@@ -163,10 +167,10 @@ const ProductCard = ({ product }) => {
 						{/* WhatsApp Button */}
 						<button
 							className={`flex items-center justify-center px-3 sm:px-4 py-2.5 sm:py-3 
-							border transition-all duration-300 transform active:scale-95
+							border transform active:scale-95 will-change-transform
 							${isOutOfStock
 								? 'bg-zinc-900 border-zinc-800 text-zinc-600'
-								: 'bg-zinc-900 border-zinc-800 hover:border-green-600 hover:bg-green-600/10'
+								: 'bg-zinc-900 border-zinc-800 hover:border-green-600 hover:bg-green-600/10 transition-[border-color,background-color] duration-300'
 							}`}
 							onClick={handleWhatsApp}
 							title="Chat on WhatsApp"
@@ -178,10 +182,10 @@ const ProductCard = ({ product }) => {
 			</div>
 
 			{/* Bottom accent line */}
-			<div className={`h-[1px] w-0 transition-all duration-500
+			<div className={`h-[1px] w-0 will-change-[width]
 				${isOutOfStock 
 					? 'bg-zinc-800' 
-					: 'bg-white group-hover:w-full'
+					: 'bg-white group-hover:w-full transition-[width] duration-500'
 				}`} 
 			/>
 		</div>
