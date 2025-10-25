@@ -37,10 +37,14 @@ const productSchema = new mongoose.Schema(
 			type: Boolean,
 			default: false,
 		},
-		// NEW FIELD: Best Seller flag
 		isBestSeller: {
 			type: Boolean,
 			default: false,
+		},
+		// NEW FIELD: Stock Status
+		inStock: {
+			type: Boolean,
+			default: true,
 		},
 	},
 	{ timestamps: true }
