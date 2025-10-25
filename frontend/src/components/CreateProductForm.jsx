@@ -15,7 +15,7 @@ const CreateProductForm = () => {
 		additionalImages: [],
 		isFeatured: false,
 		isBestSeller: false,
-		inStock: true, // NEW
+		inStock: true,
 	});
 
 	const { createProduct, loading } = useProductStore();
@@ -33,7 +33,7 @@ const CreateProductForm = () => {
 				additionalImages: [],
 				isFeatured: false,
 				isBestSeller: false,
-				inStock: true, // NEW
+				inStock: true,
 			});
 		} catch {
 			console.log("error creating a product");
@@ -44,11 +44,9 @@ const CreateProductForm = () => {
 		const file = e.target.files[0];
 		if (file) {
 			const reader = new FileReader();
-
 			reader.onloadend = () => {
 				setNewProduct({ ...newProduct, image: reader.result });
 			};
-
 			reader.readAsDataURL(file);
 		}
 	};
@@ -92,260 +90,359 @@ const CreateProductForm = () => {
 
 	return (
 		<motion.div
-			className='bg-gray-800 shadow-lg rounded-lg p-8 mb-8 max-w-xl mx-auto'
+			className='bg-zinc-950/50 border border-zinc-800/50 p-6 sm:p-8 lg:p-10 max-w-3xl mx-auto'
 			initial={{ opacity: 0, y: 20 }}
 			animate={{ opacity: 1, y: 0 }}
-			transition={{ duration: 0.8 }}
+			transition={{ duration: 0.6 }}
 		>
-			<h2 className='text-2xl font-semibold mb-6 text-emerald-300'>Create New Product</h2>
-
-			<form onSubmit={handleSubmit} className='space-y-4'>
-				<div>
-					<label htmlFor='name' className='block text-sm font-medium text-gray-300'>
-						Product Name
-					</label>
-					<input
-						type='text'
-						id='name'
-						name='name'
-						value={newProduct.name}
-						onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
-						className='mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2
-						 px-3 text-white focus:outline-none focus:ring-2
-						focus:ring-emerald-500 focus:border-emerald-500'
-						required
-					/>
+			{/* Header */}
+			<div className='mb-8 sm:mb-10'>
+				<div className='flex items-center gap-3 mb-2'>
+					<div className='h-[1px] w-8 bg-zinc-700' />
+					<h2 className='text-xs uppercase tracking-[0.3em] text-zinc-500 font-light'>
+						New Product
+					</h2>
 				</div>
+				<p className='text-xl sm:text-2xl font-light text-white tracking-tight'>
+					Create Product
+				</p>
+			</div>
 
-				<div>
-					<label htmlFor='description' className='block text-sm font-medium text-gray-300'>
-						Description
-					</label>
-					<textarea
-						id='description'
-						name='description'
-						value={newProduct.description}
-						onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
-						rows='3'
-						className='mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm
-						 py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 
-						 focus:border-emerald-500'
-						required
-					/>
-				</div>
-
-				<div>
-					<label htmlFor='price' className='block text-sm font-medium text-gray-300'>
-						Price
-					</label>
-					<input
-						type='number'
-						id='price'
-						name='price'
-						value={newProduct.price}
-						onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
-						step='0.01'
-						className='mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm 
-						py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500
-						 focus:border-emerald-500'
-						required
-					/>
-				</div>
-
-				<div>
-					<label htmlFor='category' className='block text-sm font-medium text-gray-300'>
-						Category
-					</label>
-					<select
-						id='category'
-						name='category'
-						value={newProduct.category}
-						onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
-						className='mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md
-						 shadow-sm py-2 px-3 text-white focus:outline-none 
-						 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500'
-						required
-					>
-						<option value=''>Select a category</option>
-						{categories.map((category) => (
-							<option key={category} value={category}>
-								{category}
-							</option>
-						))}
-					</select>
-				</div>
-
-				{/* Main Image Upload */}
-				<div>
-					<label className='block text-sm font-medium text-gray-300 mb-2'>
-						Main Product Image <span className='text-red-400'>*</span>
-					</label>
-					<div className='mt-1 flex items-center gap-4'>
-						<input 
-							type='file' 
-							id='image' 
-							className='sr-only' 
-							accept='image/*' 
-							onChange={handleImageChange} 
-						/>
-						<label
-							htmlFor='image'
-							className='cursor-pointer bg-gray-700 py-2 px-3 border border-gray-600 rounded-md shadow-sm text-sm leading-4 font-medium text-gray-300 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500'
-						>
-							<Upload className='h-5 w-5 inline-block mr-2' />
-							Upload Main Image
-						</label>
+			<form onSubmit={handleSubmit} className='space-y-6 sm:space-y-8'>
+				{/* Basic Information Section */}
+				<div className='space-y-5'>
+					<div className='flex items-center gap-2 mb-4'>
+						<div className='h-[1px] w-4 bg-zinc-800' />
+						<span className='text-[10px] uppercase tracking-[0.25em] text-zinc-600 font-light'>
+							Basic Information
+						</span>
 					</div>
 
-					{newProduct.image && (
-						<div className='mt-3 relative inline-block'>
-							<img
-								src={newProduct.image}
-								alt='Main product'
-								className='w-32 h-32 object-cover rounded-lg border-2 border-emerald-500'
+					{/* Product Name */}
+					<div>
+						<label htmlFor='name' className='block text-xs uppercase tracking-wider text-zinc-500 font-light mb-2'>
+							Product Name
+						</label>
+						<input
+							type='text'
+							id='name'
+							name='name'
+							value={newProduct.name}
+							onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
+							className='w-full bg-zinc-900/50 border border-zinc-800 px-4 py-3 text-white font-light
+							focus:outline-none focus:border-white transition-colors duration-200
+							placeholder:text-zinc-700'
+							placeholder='Enter product name'
+							required
+						/>
+					</div>
+
+					{/* Description */}
+					<div>
+						<label htmlFor='description' className='block text-xs uppercase tracking-wider text-zinc-500 font-light mb-2'>
+							Description
+						</label>
+						<textarea
+							id='description'
+							name='description'
+							value={newProduct.description}
+							onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
+							rows='4'
+							className='w-full bg-zinc-900/50 border border-zinc-800 px-4 py-3 text-white font-light
+							focus:outline-none focus:border-white transition-colors duration-200
+							placeholder:text-zinc-700 resize-none'
+							placeholder='Enter product description'
+							required
+						/>
+					</div>
+
+					{/* Price & Category Grid */}
+					<div className='grid grid-cols-1 sm:grid-cols-2 gap-5'>
+						{/* Price */}
+						<div>
+							<label htmlFor='price' className='block text-xs uppercase tracking-wider text-zinc-500 font-light mb-2'>
+								Price
+							</label>
+							<input
+								type='number'
+								id='price'
+								name='price'
+								value={newProduct.price}
+								onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
+								step='0.01'
+								className='w-full bg-zinc-900/50 border border-zinc-800 px-4 py-3 text-white font-light
+								focus:outline-none focus:border-white transition-colors duration-200
+								placeholder:text-zinc-700'
+								placeholder='0.00'
+								required
 							/>
-							<button
-								type='button'
-								onClick={removeMainImage}
-								className='absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600'
-							>
-								<X className='h-4 w-4' />
-							</button>
-							<span className='absolute bottom-0 left-0 right-0 bg-emerald-600 bg-opacity-90 text-white text-xs text-center py-1 rounded-b-lg'>
-								Main Image
-							</span>
 						</div>
-					)}
+
+						{/* Category */}
+						<div>
+							<label htmlFor='category' className='block text-xs uppercase tracking-wider text-zinc-500 font-light mb-2'>
+								Category
+							</label>
+							<select
+								id='category'
+								name='category'
+								value={newProduct.category}
+								onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
+								className='w-full bg-zinc-900/50 border border-zinc-800 px-4 py-3 text-white font-light
+								focus:outline-none focus:border-white transition-colors duration-200
+								appearance-none cursor-pointer'
+								required
+							>
+								<option value='' className='bg-zinc-900'>Select category</option>
+								{categories.map((category) => (
+									<option key={category} value={category} className='bg-zinc-900'>
+										{category}
+									</option>
+								))}
+							</select>
+						</div>
+					</div>
 				</div>
 
-				{/* Additional Images Upload */}
-				<div>
-					<label className='block text-sm font-medium text-gray-300 mb-2'>
-						Additional Images (Optional - Max 3)
-					</label>
-					<div className='mt-1 flex items-center gap-4'>
-						<input 
-							type='file' 
-							id='additionalImages' 
-							className='sr-only' 
-							accept='image/*' 
-							onChange={handleAdditionalImagesChange}
-							multiple
-							disabled={newProduct.additionalImages.length >= 3}
-						/>
-						<label
-							htmlFor='additionalImages'
-							className={`cursor-pointer bg-gray-700 py-2 px-3 border border-gray-600 rounded-md shadow-sm text-sm leading-4 font-medium text-gray-300 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 ${
-								newProduct.additionalImages.length >= 3 ? 'opacity-50 cursor-not-allowed' : ''
-							}`}
-						>
-							<Image className='h-5 w-5 inline-block mr-2' />
-							Add More Images ({newProduct.additionalImages.length}/3)
-						</label>
+				{/* Images Section */}
+				<div className='space-y-5 pt-6 border-t border-zinc-800/50'>
+					<div className='flex items-center gap-2 mb-4'>
+						<div className='h-[1px] w-4 bg-zinc-800' />
+						<span className='text-[10px] uppercase tracking-[0.25em] text-zinc-600 font-light'>
+							Product Images
+						</span>
 					</div>
 
-					{newProduct.additionalImages.length > 0 && (
-						<div className='mt-3 grid grid-cols-3 gap-3'>
-							{newProduct.additionalImages.map((img, index) => (
-								<div key={index} className='relative'>
-									<img
-										src={img}
-										alt={`Additional ${index + 1}`}
-										className='w-full h-32 object-cover rounded-lg border-2 border-gray-600'
-									/>
-									<button
-										type='button'
-										onClick={() => removeAdditionalImage(index)}
-										className='absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600'
-									>
-										<X className='h-4 w-4' />
-									</button>
+					{/* Main Image Upload */}
+					<div>
+						<label className='block text-xs uppercase tracking-wider text-zinc-500 font-light mb-3'>
+							Main Image <span className='text-white'>*</span>
+						</label>
+						
+						{!newProduct.image ? (
+							<label
+								htmlFor='image'
+								className='group relative block w-full h-48 sm:h-56 border-2 border-dashed border-zinc-800 
+								hover:border-zinc-700 transition-colors cursor-pointer overflow-hidden'
+							>
+								<input 
+									type='file' 
+									id='image' 
+									className='sr-only' 
+									accept='image/*' 
+									onChange={handleImageChange} 
+								/>
+								<div className='absolute inset-0 flex flex-col items-center justify-center gap-3 bg-zinc-900/30 
+								group-hover:bg-zinc-900/50 transition-colors'>
+									<Upload className='w-8 h-8 text-zinc-700 group-hover:text-zinc-600' strokeWidth={1.5} />
+									<div className='text-center'>
+										<p className='text-sm text-zinc-600 font-light'>Click to upload main image</p>
+										<p className='text-xs text-zinc-700 mt-1'>PNG, JPG, WEBP up to 10MB</p>
+									</div>
 								</div>
-							))}
+							</label>
+						) : (
+							<div className='relative group'>
+								<div className='relative w-full h-48 sm:h-56 border border-zinc-800 overflow-hidden'>
+									<img
+										src={newProduct.image}
+										alt='Main product'
+										className='w-full h-full object-cover'
+									/>
+									<div className='absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity' />
+								</div>
+								<button
+									type='button'
+									onClick={removeMainImage}
+									className='absolute top-2 right-2 p-1.5 bg-zinc-900/90 border border-zinc-700 text-white 
+									hover:bg-red-600 hover:border-red-600 transition-colors'
+								>
+									<X className='h-4 w-4' strokeWidth={1.5} />
+								</button>
+								<div className='absolute bottom-2 left-2 px-2 py-1 bg-white text-black text-[10px] 
+								uppercase tracking-uppercase tracking-wider font-light'>
+									Main Image
+								</div>
+							</div>
+						)}
+					</div>
+
+					{/* Additional Images Upload */}
+					<div>
+						<label className='block text-xs uppercase tracking-wider text-zinc-500 font-light mb-3'>
+							Additional Images (Max 3)
+						</label>
+						
+						<div className='space-y-3'>
+							{/* Upload Button */}
+							{newProduct.additionalImages.length < 3 && (
+								<label
+									htmlFor='additionalImages'
+									className={`group relative block w-full h-32 border-2 border-dashed border-zinc-800 
+									hover:border-zinc-700 transition-colors cursor-pointer overflow-hidden
+									${newProduct.additionalImages.length >= 3 ? 'opacity-50 pointer-events-none' : ''}`}
+								>
+									<input 
+										type='file' 
+										id='additionalImages' 
+										className='sr-only' 
+										accept='image/*' 
+										onChange={handleAdditionalImagesChange}
+										multiple
+										disabled={newProduct.additionalImages.length >= 3}
+									/>
+									<div className='absolute inset-0 flex flex-col items-center justify-center gap-2 bg-zinc-900/30 
+									group-hover:bg-zinc-900/50 transition-colors'>
+										<Image className='w-6 h-6 text-zinc-700 group-hover:text-zinc-600' strokeWidth={1.5} />
+										<p className='text-xs text-zinc-600 font-light'>
+											Add more ({newProduct.additionalImages.length}/3)
+										</p>
+									</div>
+								</label>
+							)}
+
+							{/* Additional Images Grid */}
+							{newProduct.additionalImages.length > 0 && (
+								<div className='grid grid-cols-3 gap-3'>
+									{newProduct.additionalImages.map((img, index) => (
+										<div key={index} className='relative group'>
+											<div className='relative w-full aspect-square border border-zinc-800 overflow-hidden'>
+												<img
+													src={img}
+													alt={`Additional ${index + 1}`}
+													className='w-full h-full object-cover'
+												/>
+												<div className='absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity' />
+											</div>
+											<button
+												type='button'
+												onClick={() => removeAdditionalImage(index)}
+												className='absolute top-1 right-1 p-1 bg-zinc-900/90 border border-zinc-700 text-white 
+												hover:bg-red-600 hover:border-red-600 transition-colors'
+											>
+												<X className='h-3 w-3' strokeWidth={1.5} />
+											</button>
+										</div>
+									))}
+								</div>
+							)}
 						</div>
-					)}
+					</div>
 				</div>
 
 				{/* Display Options Section */}
-				<div className='border-t border-gray-700 pt-4'>
-					<label className='block text-sm font-medium text-gray-300 mb-3'>
-						Product Display Options
-					</label>
+				<div className='space-y-4 pt-6 border-t border-zinc-800/50'>
+					<div className='flex items-center gap-2 mb-4'>
+						<div className='h-[1px] w-4 bg-zinc-800' />
+						<span className='text-[10px] uppercase tracking-[0.25em] text-zinc-600 font-light'>
+							Display Options
+						</span>
+					</div>
 					
 					<div className='space-y-3'>
-						{/* Stock Status Toggle - NEW */}
-						<div className='flex items-center justify-between bg-gray-700/50 p-3 rounded-lg hover:bg-gray-700 transition-colors'>
-							<div className='flex items-center space-x-3'>
-								<div className={`p-2 rounded-lg ${newProduct.inStock ? 'bg-green-500/10' : 'bg-red-500/10'}`}>
-									<Package className={`h-5 w-5 ${newProduct.inStock ? 'text-green-400' : 'text-red-400'}`} />
+						{/* Stock Status Toggle */}
+						<div className='flex items-center justify-between bg-zinc-900/30 border border-zinc-800 p-4 
+						hover:bg-zinc-900/50 transition-colors group'>
+							<div className='flex items-center gap-3'>
+								<div className={`p-2 border transition-colors ${
+									newProduct.inStock 
+										? 'bg-zinc-900 border-zinc-700 text-white' 
+										: 'bg-zinc-900 border-zinc-800 text-zinc-600'
+								}`}>
+									<Package className='h-5 w-5' strokeWidth={1.5} />
 								</div>
 								<div>
-									<p className='text-sm font-medium text-white'>In Stock</p>
-									<p className='text-xs text-gray-400'>Available for purchase</p>
+									<p className='text-sm font-light text-white tracking-wide'>In Stock</p>
+									<p className='text-xs text-zinc-600 font-light mt-0.5'>Available for purchase</p>
 								</div>
 							</div>
 							<button
 								type='button'
 								onClick={() => setNewProduct({ ...newProduct, inStock: !newProduct.inStock })}
-								className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-gray-800 ${
-									newProduct.inStock ? 'bg-green-500' : 'bg-red-500'
+								className={`relative inline-flex h-6 w-11 items-center transition-colors border
+								focus:outline-none focus:border-white ${
+									newProduct.inStock 
+										? 'bg-white border-white' 
+										: 'bg-zinc-900 border-zinc-800'
 								}`}
 							>
 								<span
-									className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-										newProduct.inStock ? 'translate-x-6' : 'translate-x-1'
+									className={`inline-block h-4 w-4 transform transition-transform ${
+										newProduct.inStock 
+											? 'translate-x-6 bg-black' 
+											: 'translate-x-1 bg-zinc-700'
 									}`}
 								/>
 							</button>
 						</div>
 
 						{/* Featured Product Toggle */}
-						<div className='flex items-center justify-between bg-gray-700/50 p-3 rounded-lg hover:bg-gray-700 transition-colors'>
-							<div className='flex items-center space-x-3'>
-								<div className='p-2 bg-yellow-500/10 rounded-lg'>
-									<Star className='h-5 w-5 text-yellow-400' />
+						<div className='flex items-center justify-between bg-zinc-900/30 border border-zinc-800 p-4 
+						hover:bg-zinc-900/50 transition-colors group'>
+							<div className='flex items-center gap-3'>
+								<div className={`p-2 border transition-colors ${
+									newProduct.isFeatured 
+										? 'bg-white border-white text-black' 
+										: 'bg-zinc-900 border-zinc-800 text-zinc-600'
+								}`}>
+									<Star className='h-5 w-5' strokeWidth={1.5} fill={newProduct.isFeatured ? 'currentColor' : 'none'} />
 								</div>
 								<div>
-									<p className='text-sm font-medium text-white'>Featured Product</p>
-									<p className='text-xs text-gray-400'>Show on homepage hero section</p>
+									<p className='text-sm font-light text-white tracking-wide'>Featured Product</p>
+									<p className='text-xs text-zinc-600 font-light mt-0.5'>Show on homepage hero</p>
 								</div>
 							</div>
 							<button
 								type='button'
 								onClick={() => setNewProduct({ ...newProduct, isFeatured: !newProduct.isFeatured })}
-								className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-gray-800 ${
-									newProduct.isFeatured ? 'bg-emerald-500' : 'bg-gray-600'
+								className={`relative inline-flex h-6 w-11 items-center transition-colors border
+								focus:outline-none focus:border-white ${
+									newProduct.isFeatured 
+										? 'bg-white border-white' 
+										: 'bg-zinc-900 border-zinc-800'
 								}`}
 							>
 								<span
-									className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-										newProduct.isFeatured ? 'translate-x-6' : 'translate-x-1'
+									className={`inline-block h-4 w-4 transform transition-transform ${
+										newProduct.isFeatured 
+											? 'translate-x-6 bg-black' 
+											: 'translate-x-1 bg-zinc-700'
 									}`}
 								/>
 							</button>
 						</div>
 
 						{/* Best Seller Toggle */}
-						<div className='flex items-center justify-between bg-gray-700/50 p-3 rounded-lg hover:bg-gray-700 transition-colors'>
-							<div className='flex items-center space-x-3'>
-								<div className='p-2 bg-blue-500/10 rounded-lg'>
-									<TrendingUp className='h-5 w-5 text-blue-400' />
+						<div className='flex items-center justify-between bg-zinc-900/30 border border-zinc-800 p-4 
+						hover:bg-zinc-900/50 transition-colors group'>
+							<div className='flex items-center gap-3'>
+								<div className={`p-2 border transition-colors ${
+									newProduct.isBestSeller 
+										? 'bg-white border-white text-black' 
+										: 'bg-zinc-900 border-zinc-800 text-zinc-600'
+								}`}>
+									<TrendingUp className='h-5 w-5' strokeWidth={1.5} />
 								</div>
 								<div>
-									<p className='text-sm font-medium text-white'>Best Seller</p>
-									<p className='text-xs text-gray-400'>Show in best sellers section</p>
+									<p className='text-sm font-light text-white tracking-wide'>Best Seller</p>
+									<p className='text-xs text-zinc-600 font-light mt-0.5'>Show in best sellers</p>
 								</div>
 							</div>
 							<button
 								type='button'
 								onClick={() => setNewProduct({ ...newProduct, isBestSeller: !newProduct.isBestSeller })}
-								className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-gray-800 ${
-									newProduct.isBestSeller ? 'bg-blue-500' : 'bg-gray-600'
+								className={`relative inline-flex h-6 w-11 items-center transition-colors border
+								focus:outline-none focus:border-white ${
+									newProduct.isBestSeller 
+										? 'bg-white border-white' 
+										: 'bg-zinc-900 border-zinc-800'
 								}`}
 							>
 								<span
-									className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-										newProduct.isBestSeller ? 'translate-x-6' : 'translate-x-1'
+									className={`inline-block h-4 w-4 transform transition-transform ${
+										newProduct.isBestSeller 
+											? 'translate-x-6 bg-black' 
+											: 'translate-x-1 bg-zinc-700'
 									}`}
 								/>
 							</button>
@@ -353,22 +450,25 @@ const CreateProductForm = () => {
 					</div>
 				</div>
 
+				{/* Submit Button */}
 				<button
 					type='submit'
-					className='w-full flex justify-center py-2 px-4 border border-transparent rounded-md 
-					shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 
-					focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50'
+					className='group relative w-full flex items-center justify-center px-8 py-4 text-sm uppercase tracking-wide
+					font-light overflow-hidden border transition-all duration-300
+					disabled:opacity-50 disabled:cursor-not-allowed
+					bg-white border-white text-black hover:bg-zinc-900 hover:text-white'
 					disabled={loading}
 				>
 					{loading ? (
 						<>
-							<Loader className='mr-2 h-5 w-5 animate-spin' aria-hidden='true' />
-							Loading...
+							<Loader className='mr-2 h-5 w-5 animate-spin' strokeWidth={1.5} />
+							<span>Creating...</span>
 						</>
 					) : (
 						<>
-							<PlusCircle className='mr-2 h-5 w-5' />
-							Create Product
+							<div className='absolute inset-0 bg-zinc-900 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300' />
+							<PlusCircle className='mr-2 h-5 w-5 relative z-10' strokeWidth={1.5} />
+							<span className='relative z-10'>Create Product</span>
 						</>
 					)}
 				</button>
