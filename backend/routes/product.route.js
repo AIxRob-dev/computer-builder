@@ -3,13 +3,14 @@ import {
 	createProduct,
 	deleteProduct,
 	getAllProducts,
-	getProductById,  // ADD THIS IMPORT
+	getProductById,
 	getFeaturedProducts,
 	getBestSellerProducts,
 	getProductsByCategory,
 	getRecommendedProducts,
 	toggleFeaturedProduct,
 	toggleBestSellerProduct,
+	toggleStockStatus, // ADD THIS IMPORT
 	updateProduct,
 } from "../controllers/product.controller.js";
 import { adminRoute, protectRoute } from "../middleware/auth.middleware.js";
@@ -31,7 +32,7 @@ router.get("/category/:category", getProductsByCategory);
 // Get recommended products
 router.get("/recommendations", getRecommendedProducts);
 
-// Get single product by ID (public route) - ADD THIS LINE
+// Get single product by ID (public route)
 router.get("/:id", getProductById);
 
 // Create product (admin only)
@@ -45,6 +46,9 @@ router.patch("/:id", protectRoute, adminRoute, toggleFeaturedProduct);
 
 // Toggle best seller status (admin only)
 router.patch("/bestseller/:id", protectRoute, adminRoute, toggleBestSellerProduct);
+
+// Toggle stock status (admin only) - ADD THIS LINE
+router.patch("/stock/:id", protectRoute, adminRoute, toggleStockStatus);
 
 // Delete product (admin only)
 router.delete("/:id", protectRoute, adminRoute, deleteProduct);
