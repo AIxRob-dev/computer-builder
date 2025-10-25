@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShoppingCart, ArrowLeft, ChevronLeft, ChevronRight, X, ZoomIn, Check, MessageCircle } from "lucide-react";
+import { ShoppingCart, ArrowLeft, ChevronLeft, ChevronRight, X, ZoomIn, Check, MessageCircle, PackageX } from "lucide-react";
 import toast from "react-hot-toast";
 import { useUserStore } from "../stores/useUserStore";
 import { useCartStore } from "../stores/useCartStore";
@@ -23,8 +23,9 @@ const ProductDetailPage = () => {
 	const [touchStart, setTouchStart] = useState(0);
 	const [touchEnd, setTouchEnd] = useState(0);
 
-	// Check if product is already in cart
+	// Check if product is already in cart and stock status
 	const isInCart = cart.some(item => item._id === product?._id);
+	const isOutOfStock = product?.inStock === false;
 
 	useEffect(() => {
 		const loadProduct = async () => {
@@ -57,6 +58,11 @@ const ProductDetailPage = () => {
 	}, [id, products, fetchProductById]);
 
 	const handleAddToCart = () => {
+		if (isOutOfStock) {
+			toast.error("This product is currently out of stock", { id: "out-of-stock" });
+			return;
+		}
+
 		if (!user) {
 			toast.error("Please login to add products to cart", { id: "login" });
 			setTimeout(() => {
@@ -124,7 +130,7 @@ const ProductDetailPage = () => {
 	const handleOpenLightbox = (index) => {
 		setLightboxImageIndex(index);
 		setIsLightboxOpen(true);
-		document.body.style.overflow = 'hidden'; // Prevent background scroll
+		document.body.style.overflow = 'hidden';
 	};
 
 	const handleCloseLightbox = () => {
@@ -195,6 +201,22 @@ const ProductDetailPage = () => {
 					<ArrowLeft className='mr-2 group-hover:-translate-x-1 transition-transform' size={20} strokeWidth={1.5} />
 					<span className='text-sm sm:text-base font-light tracking-wide'>Back</span>
 				</motion.button>
+
+				{/* Out of Stock Banner - Full Width */}
+				{isOutOfStock && (
+					<motion.div
+						initial={{ opacity: 0, y: -10 }}
+						animate={{ opacity: 1, y: 0 }}
+						className='mb-6 bg-zinc-900/95 backdrop-blur-sm border border-zinc-800 py-3 px-4 sm:px-6'
+					>
+						<div className='flex items-center justify-center gap-2'>
+							<PackageX className='w-5 h-5 text-zinc-500' strokeWidth={1.5} />
+							<span className='text-sm sm:text-base font-light uppercase tracking-wider text-zinc-500'>
+								This product is currently out of stock
+							</span>
+						</div>
+					</motion.div>
+				)}
 
 				<motion.div
 					initial={{ opacity: 0, y: 20 }}
@@ -355,6 +377,16 @@ const ProductDetailPage = () => {
 							{product.name}
 						</h1>
 
+						{/* Out of Stock Badge - Mobile */}
+						{isOutOfStock && (
+							<div className='inline-flex items-center gap-2 bg-zinc-900/50 border border-zinc-800 px-4 py-2 w-fit'>
+								<PackageX className='w-4 h-4 text-zinc-500' strokeWidth={1.5} />
+								<span className='text-xs font-light uppercase tracking-wider text-zinc-500'>
+									Out of Stock
+								</span>
+							</div>
+						)}
+
 						{/* Price */}
 						<div>
 							<span className='text-4xl sm:text-5xl lg:text-6xl font-light text-white tracking-tight'>
@@ -386,16 +418,23 @@ const ProductDetailPage = () => {
 							{/* Add to Cart Button */}
 							<button
 								onClick={handleAddToCart}
-								disabled={isInCart && user}
+								disabled={(isInCart && user) || isOutOfStock}
 								className={`group relative flex items-center justify-center px-8 sm:px-10 py-3 sm:py-4 
 								text-sm sm:text-base font-medium uppercase tracking-wide
 								transition-all duration-300 overflow-hidden flex-1
-								${isInCart && user
-									? 'bg-zinc-900 text-white border border-zinc-800 cursor-default'
-									: 'bg-white text-black hover:bg-zinc-900 hover:text-white border border-white hover:border-zinc-700'
+								${isOutOfStock
+									? 'bg-zinc-900 text-zinc-600 border border-zinc-800 cursor-not-allowed'
+									: (isInCart && user)
+										? 'bg-zinc-900 text-white border border-zinc-800 cursor-default'
+										: 'bg-white text-black hover:bg-zinc-900 hover:text-white border border-white hover:border-zinc-700'
 								}`}
 							>
-								{!isInCart || !user ? (
+								{isOutOfStock ? (
+									<>
+										<PackageX size={20} className='mr-3' strokeWidth={1.5} />
+										<span>Out of Stock</span>
+									</>
+								) : (!isInCart || !user) ? (
 									<>
 										<div className='absolute inset-0 bg-zinc-900 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300' />
 										<ShoppingCart size={20} className='mr-3 relative z-10' strokeWidth={1.5} />
@@ -425,7 +464,7 @@ const ProductDetailPage = () => {
 					</div>
 				</motion.div>
 
-				{/* Lightbox Modal */}
+				{/* Lightbox Modal - Now works for all products */}
 				<AnimatePresence>
 					{isLightboxOpen && (
 						<motion.div
