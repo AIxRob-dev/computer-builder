@@ -18,7 +18,7 @@ const Navbar = () => {
                         className='flex-shrink-0 transition-opacity duration-200 hover:opacity-80'
                     >
                         <img 
-                            src="fontbol.png" 
+                            src="/fontbol.png" 
                             alt="SLATEBOOKS" 
                             className='h-6 sm:h-6 md:h-7 w-auto max-w-[180px] sm:max-w-none'
                         />
