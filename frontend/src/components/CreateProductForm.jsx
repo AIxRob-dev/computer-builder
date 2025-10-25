@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { PlusCircle, Upload, Loader, X, Image, Star, TrendingUp } from "lucide-react";
+import { PlusCircle, Upload, Loader, X, Image, Star, TrendingUp, Package } from "lucide-react";
 import { useProductStore } from "../stores/useProductStore";
 
 const categories = ["GTA-Series", "Animes-Series", "Valorant", "Maths", "RDR2", "Explore"];
@@ -15,6 +15,7 @@ const CreateProductForm = () => {
 		additionalImages: [],
 		isFeatured: false,
 		isBestSeller: false,
+		inStock: true, // NEW
 	});
 
 	const { createProduct, loading } = useProductStore();
@@ -32,6 +33,7 @@ const CreateProductForm = () => {
 				additionalImages: [],
 				isFeatured: false,
 				isBestSeller: false,
+				inStock: true, // NEW
 			});
 		} catch {
 			console.log("error creating a product");
@@ -264,13 +266,39 @@ const CreateProductForm = () => {
 					)}
 				</div>
 
-				{/* NEW: Display Options Section */}
+				{/* Display Options Section */}
 				<div className='border-t border-gray-700 pt-4'>
 					<label className='block text-sm font-medium text-gray-300 mb-3'>
 						Product Display Options
 					</label>
 					
 					<div className='space-y-3'>
+						{/* Stock Status Toggle - NEW */}
+						<div className='flex items-center justify-between bg-gray-700/50 p-3 rounded-lg hover:bg-gray-700 transition-colors'>
+							<div className='flex items-center space-x-3'>
+								<div className={`p-2 rounded-lg ${newProduct.inStock ? 'bg-green-500/10' : 'bg-red-500/10'}`}>
+									<Package className={`h-5 w-5 ${newProduct.inStock ? 'text-green-400' : 'text-red-400'}`} />
+								</div>
+								<div>
+									<p className='text-sm font-medium text-white'>In Stock</p>
+									<p className='text-xs text-gray-400'>Available for purchase</p>
+								</div>
+							</div>
+							<button
+								type='button'
+								onClick={() => setNewProduct({ ...newProduct, inStock: !newProduct.inStock })}
+								className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-gray-800 ${
+									newProduct.inStock ? 'bg-green-500' : 'bg-red-500'
+								}`}
+							>
+								<span
+									className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+										newProduct.inStock ? 'translate-x-6' : 'translate-x-1'
+									}`}
+								/>
+							</button>
+						</div>
+
 						{/* Featured Product Toggle */}
 						<div className='flex items-center justify-between bg-gray-700/50 p-3 rounded-lg hover:bg-gray-700 transition-colors'>
 							<div className='flex items-center space-x-3'>
