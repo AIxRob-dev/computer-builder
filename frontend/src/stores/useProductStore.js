@@ -8,13 +8,12 @@ export const useProductStore = create((set) => ({
 
 	setProducts: (products) => set({ products }),
 	
-	// NEW: Fetch single product by ID
 	fetchProductById: async (productId) => {
 		set({ loading: true });
 		try {
 			const response = await axios.get(`/products/${productId}`);
 			set({ loading: false });
-			return response.data; // Return the product directly
+			return response.data;
 		} catch (error) {
 			set({ loading: false });
 			toast.error(error.response?.data?.error || "Failed to fetch product");
@@ -105,6 +104,24 @@ export const useProductStore = create((set) => ({
 		} catch (error) {
 			set({ loading: false });
 			toast.error(error.response?.data?.error || "Failed to update product");
+		}
+	},
+	
+	// NEW: Toggle Stock Status
+	toggleStockStatus: async (productId) => {
+		set({ loading: true });
+		try {
+			const response = await axios.patch(`/products/stock/${productId}`);
+			set((prevProducts) => ({
+				products: prevProducts.products.map((product) =>
+					product._id === productId ? { ...product, inStock: response.data.inStock } : product
+				),
+				loading: false,
+			}));
+			toast.success("Stock status updated!");
+		} catch (error) {
+			set({ loading: false });
+			toast.error(error.response?.data?.error || "Failed to update stock status");
 		}
 	},
 	
