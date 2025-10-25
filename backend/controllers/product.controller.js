@@ -12,7 +12,6 @@ export const getAllProducts = async (req, res) => {
 	}
 };
 
-// Add this function to your product.controller.js
 export const getProductById = async (req, res) => {
 	try {
 		const { id } = req.params;
@@ -51,7 +50,6 @@ export const getFeaturedProducts = async (req, res) => {
 	}
 };
 
-// NEW CONTROLLER: Get Best Seller Products
 export const getBestSellerProducts = async (req, res) => {
 	try {
 		let bestSellerProducts = await redis.get("best_seller_products");
@@ -76,7 +74,7 @@ export const getBestSellerProducts = async (req, res) => {
 
 export const createProduct = async (req, res) => {
 	try {
-		const { name, description, price, image, additionalImages, category, isFeatured, isBestSeller } = req.body;
+		const { name, description, price, image, additionalImages, category, isFeatured, isBestSeller, inStock } = req.body;
 
 		let cloudinaryResponse = null;
 		let additionalImagesUrls = [];
@@ -109,6 +107,7 @@ export const createProduct = async (req, res) => {
 			category,
 			isFeatured: isFeatured || false,
 			isBestSeller: isBestSeller || false,
+			inStock: typeof inStock !== 'undefined' ? inStock : true,
 		});
 
 		// Update caches if product is featured or best seller
@@ -162,10 +161,10 @@ export const deleteProduct = async (req, res) => {
 
 		// Clear caches if product was featured or best seller
 		if (product.isFeatured) {
-			await redis.del("featured_products");
+			await updateFeaturedProductsCache();
 		}
 		if (product.isBestSeller) {
-			await redis.del("best_seller_products");
+			await updateBestSellerProductsCache();
 		}
 
 		res.json({ message: "Product deleted successfully" });
@@ -189,6 +188,7 @@ export const getRecommendedProducts = async (req, res) => {
 					image: 1,
 					additionalImages: 1,
 					price: 1,
+					inStock: 1, // Added inStock to projection
 				},
 			},
 		]);
@@ -228,7 +228,6 @@ export const toggleFeaturedProduct = async (req, res) => {
 	}
 };
 
-// NEW CONTROLLER: Toggle Best Seller Product
 export const toggleBestSellerProduct = async (req, res) => {
 	try {
 		const product = await Product.findById(req.params.id);
@@ -246,9 +245,35 @@ export const toggleBestSellerProduct = async (req, res) => {
 	}
 };
 
+// FIXED: Toggle Stock Status with cache updates
+export const toggleStockStatus = async (req, res) => {
+	try {
+		const product = await Product.findById(req.params.id);
+		if (product) {
+			product.inStock = !product.inStock;
+			const updatedProduct = await product.save();
+			
+			// Update caches if product is featured or best seller
+			if (product.isFeatured) {
+				await updateFeaturedProductsCache();
+			}
+			if (product.isBestSeller) {
+				await updateBestSellerProductsCache();
+			}
+			
+			res.json(updatedProduct);
+		} else {
+			res.status(404).json({ message: "Product not found" });
+		}
+	} catch (error) {
+		console.log("Error in toggleStockStatus controller", error.message);
+		res.status(500).json({ message: "Server error", error: error.message });
+	}
+};
+
 export const updateProduct = async (req, res) => {
 	try {
-		const { name, description, price, image, additionalImages, category, isFeatured, isBestSeller } = req.body;
+		const { name, description, price, image, additionalImages, category, isFeatured, isBestSeller, inStock } = req.body;
 		const product = await Product.findById(req.params.id);
 
 		if (!product) {
@@ -265,6 +290,7 @@ export const updateProduct = async (req, res) => {
 		if (category) product.category = category;
 		if (typeof isFeatured !== 'undefined') product.isFeatured = isFeatured;
 		if (typeof isBestSeller !== 'undefined') product.isBestSeller = isBestSeller;
+		if (typeof inStock !== 'undefined') product.inStock = inStock;
 
 		// Update main image if provided
 		if (image) {
@@ -310,10 +336,10 @@ export const updateProduct = async (req, res) => {
 		const updatedProduct = await product.save();
 
 		// Update caches if featured or best seller status changed
-		if (wasFeatured !== updatedProduct.isFeatured) {
+		if (wasFeatured !== updatedProduct.isFeatured || wasFeatured) {
 			await updateFeaturedProductsCache();
 		}
-		if (wasBestSeller !== updatedProduct.isBestSeller) {
+		if (wasBestSeller !== updatedProduct.isBestSeller || wasBestSeller) {
 			await updateBestSellerProductsCache();
 		}
 
@@ -324,20 +350,37 @@ export const updateProduct = async (req, res) => {
 	}
 };
 
+// OPTIONAL: Temporary endpoint to clear cache (remove after using once)
+export const clearCache = async (req, res) => {
+	try {
+		await redis.del("featured_products");
+		await redis.del("best_seller_products");
+		console.log("Cache cleared successfully");
+		res.json({ message: "Cache cleared successfully" });
+	} catch (error) {
+		console.log("Error clearing cache:", error.message);
+		res.status(500).json({ message: "Error clearing cache", error: error.message });
+	}
+};
+
+// Helper function to update featured products cache
 async function updateFeaturedProductsCache() {
 	try {
 		const featuredProducts = await Product.find({ isFeatured: true }).lean();
 		await redis.set("featured_products", JSON.stringify(featuredProducts));
+		console.log("Featured products cache updated");
 	} catch (error) {
-		console.log("error in update featured cache function");
+		console.log("Error in updateFeaturedProductsCache:", error.message);
 	}
 }
 
+// Helper function to update best seller products cache
 async function updateBestSellerProductsCache() {
 	try {
 		const bestSellerProducts = await Product.find({ isBestSeller: true }).lean();
 		await redis.set("best_seller_products", JSON.stringify(bestSellerProducts));
+		console.log("Best seller products cache updated");
 	} catch (error) {
-		console.log("error in update best seller cache function");
+		console.log("Error in updateBestSellerProductsCache:", error.message);
 	}
 }
