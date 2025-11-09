@@ -2,7 +2,6 @@ import express from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import cors from "cors";
-import path from "path";
 
 import authRoutes from "./routes/auth.route.js";
 import productRoutes from "./routes/product.route.js";
@@ -18,8 +17,6 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-const __dirname = path.resolve();
-
 console.log("=== SERVER STARTUP ===");
 console.log("Environment:", process.env.NODE_ENV);
 console.log("Client URL:", process.env.CLIENT_URL);
@@ -27,7 +24,10 @@ console.log("Port:", PORT);
 
 // CORS Configuration
 const allowedOrigins = process.env.NODE_ENV === "production" 
-  ? [process.env.CLIENT_URL, "https://your-frontend-domain.com"] // Add your actual production domain
+  ? [
+      process.env.CLIENT_URL,
+      /\.vercel\.app$/ // Allow all Vercel preview deployments
+    ]
   : ["http://localhost:5173", "http://localhost:5174"];
 
 console.log("Allowed CORS origins:", allowedOrigins);
@@ -37,7 +37,15 @@ app.use(cors({
     // Allow requests with no origin (mobile apps, Postman, etc.)
     if (!origin) return callback(null, true);
     
-    if (allowedOrigins.indexOf(origin) === -1) {
+    // Check if origin matches any allowed origin
+    const isAllowed = allowedOrigins.some(allowed => {
+      if (allowed instanceof RegExp) {
+        return allowed.test(origin);
+      }
+      return allowed === origin;
+    });
+    
+    if (!isAllowed) {
       const msg = `The CORS policy for this site does not allow access from origin ${origin}`;
       console.log("CORS blocked:", origin);
       return callback(new Error(msg), false);
@@ -75,13 +83,8 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "/frontend/dist")));
-
-  app.get("*", (req, res) => {
-    res.sendFile(path.resolve(__dirname, "frontend", "dist", "index.html"));
-  });
-}
+// REMOVED: Frontend is now hosted separately on Vercel
+// No need to serve static files from backend
 
 // Error handling middleware
 app.use((err, req, res, next) => {
