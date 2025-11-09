@@ -9,27 +9,43 @@ const Navbar = () => {
     const { cart } = useCartStore();
 
     return (
-        <header className='fixed top-0 left-0 w-full bg-black/95 backdrop-blur-xl shadow-sm z-40 border-b border-zinc-800/50'>
+        <header className='fixed top-0 left-0 w-full bg-white backdrop-blur-xl shadow-lg z-40 border-b border-blue-100'>
             <div className='max-w-7xl mx-auto px-3 sm:px-6'>
                 <div className='flex justify-between items-center h-12 sm:h-14 md:h-16'>
                     {/* Logo */}
-                    <Link 
-                        to='/' 
-                        className='flex-shrink-0 transition-opacity duration-200 hover:opacity-80'
+                    <a 
+                        href='/' 
+                        className='flex-shrink-0 flex items-center gap-2 sm:gap-3 transition-all duration-300 hover:scale-105 group'
                     >
+                        <div className='relative'>
+                            {/* Animated glow effect */}
+                            <div className='absolute inset-0 bg-blue-500/20 blur-xl rounded-full group-hover:bg-blue-400/30 transition-all duration-300'></div>
+                            
+                            {/* CPU Icon as logo */}
+                             
                         <img 
-                            src="/fontbol.png" 
-                            alt="SLATEBOOKS" 
-                            className='h-6 sm:h-6 md:h-7 w-auto max-w-[180px] sm:max-w-none'
+                            src="/font.png" 
+                            alt="Computer Builder" 
+                            className='h-14 sm:h-12 md:h-14 w-auto'
                         />
-                    </Link>
-
+                    
+                        </div>
+                        
+                        <div className='flex flex-col'>
+                            <span className='text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent tracking-tight'>
+                                Computer Builder
+                            </span>
+                            <span className='text-[10px] sm:text-xs text-slate-600 font-medium tracking-wider'>
+                                WE BUILD YOUR PC
+                            </span>
+                        </div>
+                    </a>
                     {/* Navigation */}
                     <nav className='flex items-center gap-1.5 sm:gap-2'>
                         {/* Home Icon */}
                         <Link
                             to={"/"}
-                            className='p-2 text-zinc-400 hover:text-white hover:bg-zinc-900/60 rounded-md transition-all duration-200'
+                            className='p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-all duration-200'
                             title="Home"
                         >
                             <Home size={18} strokeWidth={2} />
@@ -39,12 +55,12 @@ const Navbar = () => {
                         {user && (
                             <Link
                                 to={"/cart"}
-                                className='relative p-2 text-zinc-400 hover:text-white hover:bg-zinc-900/60 rounded-md transition-all duration-200'
+                                className='relative p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-all duration-200'
                                 title="Cart"
                             >
                                 <ShoppingCart size={18} strokeWidth={2} />
                                 {cart.length > 0 && (
-                                    <span className='absolute -top-1 -right-1 bg-white text-black text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1'>
+                                    <span className='absolute -top-1 -right-1 bg-blue-600 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1'>
                                         {cart.length}
                                     </span>
                                 )}
@@ -55,7 +71,7 @@ const Navbar = () => {
                         {isAdmin && (
                             <Link
                                 to={"/secret-dashboard"}
-                                className='hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-medium rounded-md transition-all duration-200 border border-zinc-800'
+                                className='hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md transition-all duration-200 border border-blue-700'
                                 title="Dashboard"
                             >
                                 <Lock size={14} strokeWidth={2} />
@@ -67,7 +83,7 @@ const Navbar = () => {
                         {user ? (
                             <button
                                 onClick={logout}
-                                className='flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 bg-zinc-900 hover:bg-zinc-800 text-white text-xs sm:text-sm font-medium rounded-md transition-all duration-200 border border-zinc-800'
+                                className='flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs sm:text-sm font-medium rounded-md transition-all duration-200 border border-gray-300'
                                 title="Log Out"
                             >
                                 <LogOut size={16} strokeWidth={2} />
@@ -77,7 +93,7 @@ const Navbar = () => {
                             <>
                                 <Link
                                     to={"/login"}
-                                    className='flex items-center gap-1.5 px-2.5 py-1.5 text-zinc-400 hover:text-white hover:bg-zinc-900/60 rounded-md transition-all duration-200 text-xs sm:text-sm font-medium'
+                                    className='flex items-center gap-1.5 px-2.5 py-1.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-all duration-200 text-xs sm:text-sm font-medium'
                                     title="Log In"
                                 >
                                     <User size={16} strokeWidth={2} />
@@ -85,7 +101,7 @@ const Navbar = () => {
                                 </Link>
                                 <Link
                                     to={"/signup"}
-                                    className='px-2.5 py-1.5 sm:px-3 sm:py-2 bg-white hover:bg-zinc-100 text-black rounded-md transition-all duration-200 font-semibold text-xs sm:text-sm whitespace-nowrap'
+                                    className='px-2.5 py-1.5 sm:px-3 sm:py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-all duration-200 font-semibold text-xs sm:text-sm whitespace-nowrap'
                                 >
                                     Sign Up
                                 </Link>

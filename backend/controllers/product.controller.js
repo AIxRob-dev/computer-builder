@@ -74,7 +74,18 @@ export const getBestSellerProducts = async (req, res) => {
 
 export const createProduct = async (req, res) => {
 	try {
-		const { name, description, price, image, additionalImages, category, isFeatured, isBestSeller, inStock } = req.body;
+		const { 
+			name, 
+			description, 
+			price, 
+			image, 
+			additionalImages, 
+			category, // This is now an array
+			isFeatured, 
+			isBestSeller, 
+			inStock,
+			configurations
+		} = req.body;
 
 		let cloudinaryResponse = null;
 		let additionalImagesUrls = [];
@@ -104,10 +115,11 @@ export const createProduct = async (req, res) => {
 			price,
 			image: cloudinaryResponse?.secure_url ? cloudinaryResponse.secure_url : "",
 			additionalImages: additionalImagesUrls,
-			category,
+			category: Array.isArray(category) ? category : [category], // Ensure it's an array
 			isFeatured: isFeatured || false,
 			isBestSeller: isBestSeller || false,
 			inStock: typeof inStock !== 'undefined' ? inStock : true,
+			configurations: configurations || {},
 		});
 
 		// Update caches if product is featured or best seller
@@ -188,7 +200,9 @@ export const getRecommendedProducts = async (req, res) => {
 					image: 1,
 					additionalImages: 1,
 					price: 1,
-					inStock: 1, // Added inStock to projection
+					inStock: 1,
+					category: 1, // Include category array
+					configurations: 1,
 				},
 			},
 		]);
@@ -200,13 +214,39 @@ export const getRecommendedProducts = async (req, res) => {
 	}
 };
 
+// UPDATED: Now works with multiple categories
 export const getProductsByCategory = async (req, res) => {
 	const { category } = req.params;
 	try {
-		const products = await Product.find({ category });
+		// MongoDB automatically finds products where category array contains the specified category
+		const products = await Product.find({ category: category });
 		res.json({ products });
 	} catch (error) {
 		console.log("Error in getProductsByCategory controller", error.message);
+		res.status(500).json({ message: "Server error", error: error.message });
+	}
+};
+
+// NEW: Get products by multiple categories
+export const getProductsByMultipleCategories = async (req, res) => {
+	try {
+		// Expecting categories as query params: ?categories=gaming,laptop,desktop
+		const { categories } = req.query;
+		
+		if (!categories) {
+			return res.status(400).json({ message: "Categories parameter is required" });
+		}
+
+		const categoryArray = categories.split(',').map(cat => cat.trim());
+		
+		// Find products that have at least one of the specified categories
+		const products = await Product.find({ 
+			category: { $in: categoryArray }
+		});
+		
+		res.json({ products });
+	} catch (error) {
+		console.log("Error in getProductsByMultipleCategories controller", error.message);
 		res.status(500).json({ message: "Server error", error: error.message });
 	}
 };
@@ -245,7 +285,6 @@ export const toggleBestSellerProduct = async (req, res) => {
 	}
 };
 
-// FIXED: Toggle Stock Status with cache updates
 export const toggleStockStatus = async (req, res) => {
 	try {
 		const product = await Product.findById(req.params.id);
@@ -273,7 +312,19 @@ export const toggleStockStatus = async (req, res) => {
 
 export const updateProduct = async (req, res) => {
 	try {
-		const { name, description, price, image, additionalImages, category, isFeatured, isBestSeller, inStock } = req.body;
+		const { 
+			name, 
+			description, 
+			price, 
+			image, 
+			additionalImages, 
+			category, // This is now an array
+			isFeatured, 
+			isBestSeller, 
+			inStock,
+			configurations
+		} = req.body;
+		
 		const product = await Product.findById(req.params.id);
 
 		if (!product) {
@@ -287,10 +338,21 @@ export const updateProduct = async (req, res) => {
 		if (name) product.name = name;
 		if (description) product.description = description;
 		if (price) product.price = price;
-		if (category) product.category = category;
+		if (category) {
+			// Ensure category is always an array
+			product.category = Array.isArray(category) ? category : [category];
+		}
 		if (typeof isFeatured !== 'undefined') product.isFeatured = isFeatured;
 		if (typeof isBestSeller !== 'undefined') product.isBestSeller = isBestSeller;
 		if (typeof inStock !== 'undefined') product.inStock = inStock;
+		
+		// Update configurations if provided
+		if (configurations) {
+			product.configurations = {
+				...product.configurations,
+				...configurations
+			};
+		}
 
 		// Update main image if provided
 		if (image) {
@@ -350,7 +412,6 @@ export const updateProduct = async (req, res) => {
 	}
 };
 
-// OPTIONAL: Temporary endpoint to clear cache (remove after using once)
 export const clearCache = async (req, res) => {
 	try {
 		await redis.del("featured_products");

@@ -1,10 +1,11 @@
+import { memo } from "react";
 import toast from "react-hot-toast";
 import { ShoppingCart, MessageCircle, Check, PackageX } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useUserStore } from "../stores/useUserStore";
 import { useCartStore } from "../stores/useCartStore";
 
-const ProductCard = ({ product }) => {
+const ProductCard = memo(({ product }) => {
 	const { user } = useUserStore();
 	const { addToCart, cart } = useCartStore();
 	const navigate = useNavigate();
@@ -41,9 +42,9 @@ const ProductCard = ({ product }) => {
 	const handleWhatsApp = (e) => {
 		e.stopPropagation();
 		const message = encodeURIComponent(
-			`Hi! I'm interested in this product:\n${product.name}\nPrice: $${product.price}\nLink: ${window.location.origin}/product/${product._id}`
+			`Hi! I'm interested in this product:\n${product.name}\nPrice: ₹${product.price}\nLink: ${window.location.origin}/product/${product._id}`
 		);
-		const phoneNumber = "1234567890"; // Update with your actual number
+		const phoneNumber = "1234567890";
 		window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank');
 	};
 
@@ -53,143 +54,140 @@ const ProductCard = ({ product }) => {
 
 	return (
 		<div 
-			className={`group w-full max-w-sm mx-auto flex flex-col overflow-hidden cursor-pointer 
-			bg-zinc-950 border will-change-transform
-			${isOutOfStock 
-				? 'border-zinc-900/50 opacity-60 hover:opacity-70 transition-opacity duration-300' 
-				: 'border-zinc-800/50 hover:border-zinc-700 hover:shadow-2xl hover:shadow-zinc-900/50 transition-[border-color,box-shadow] duration-500'
-			}`}
+			className={`group bg-white border border-gray-200 hover:border-gray-300 rounded-lg overflow-hidden cursor-pointer transition-all duration-200 h-full flex flex-col
+			${isOutOfStock ? 'opacity-60' : 'hover:shadow-lg'}
+			`}
 			onClick={handleCardClick}
 		>
-			{/* Out of Stock Badge */}
-			{isOutOfStock && (
-				<div className='absolute top-0 left-0 right-0 z-20 bg-zinc-900/95 backdrop-blur-sm border-b border-zinc-800 py-2 px-4'>
-					<div className='flex items-center justify-center gap-2'>
-						<PackageX className='w-4 h-4 text-zinc-500' strokeWidth={1.5} />
-						<span className='text-xs font-light uppercase tracking-wider text-zinc-500'>
-							Out of Stock
-						</span>
-					</div>
-				</div>
-			)}
-
-			{/* Image Container */}
-			<div className={`relative w-full aspect-[3/4] overflow-hidden bg-zinc-900/30 ${isOutOfStock ? 'mt-10' : ''}`}>
-				<img 
-					className={`w-full h-full object-contain p-4 will-change-transform
-					${isOutOfStock 
-						? 'grayscale opacity-40' 
-						: 'group-hover:scale-105 group-hover:p-2 transition-[transform,padding] duration-700 ease-out'
-					}`}
-					src={product.image} 
-					alt={product.name}
-					loading="lazy"
-					decoding="async"
-					fetchpriority="low"
-					width="400"
-					height="533"
-				/>
-				
-				{/* Out of Stock Overlay */}
+			{/* Image Section */}
+			<div className='relative w-full bg-white'>
+				{/* Out of Stock Badge */}
 				{isOutOfStock && (
-					<div className='absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[2px]'>
-						<div className='text-center space-y-2'>
-							<PackageX className='w-12 h-12 text-zinc-600 mx-auto' strokeWidth={1} />
-							<p className='text-zinc-500 text-sm font-light uppercase tracking-widest'>
-								Unavailable
-							</p>
+					<div className='absolute top-2 left-2 z-10'>
+						<div className='bg-red-500 text-white px-2 py-1 rounded text-xs font-bold'>
+							Out of stock
 						</div>
 					</div>
 				)}
-				
-				{/* Subtle hover overlay for in-stock products */}
-				{!isOutOfStock && (
-					<div className='absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500' />
-				)}
+
+				<div className='relative w-full aspect-square overflow-hidden bg-white p-4'>
+					<img 
+						className={`w-full h-full object-contain transition-transform duration-300
+						${isOutOfStock ? 'grayscale opacity-50' : 'group-hover:scale-105'}
+						`}
+						src={product.image} 
+						alt={product.name}
+						loading="lazy"
+						decoding="async"
+					/>
+					
+					{/* Out of Stock Overlay */}
+					{isOutOfStock && (
+						<div className='absolute inset-0 flex items-center justify-center bg-white/80'>
+							<div className='text-center'>
+								<PackageX className='w-12 h-12 text-gray-400 mx-auto mb-2' strokeWidth={1.5} />
+								<p className='text-gray-600 text-sm font-semibold'>
+									Currently Unavailable
+								</p>
+							</div>
+						</div>
+					)}
+				</div>
 			</div>
 
-			{/* Product Info */}
-			<div className='flex flex-col flex-grow p-4 sm:p-5 lg:p-6'>
+			{/* Product Info Section */}
+			<div className='flex flex-col flex-grow p-4'>
 				{/* Product Name */}
-				<h3 className={`text-base sm:text-lg font-light tracking-wide mb-3 line-clamp-2 min-h-[3rem]
-					${isOutOfStock 
-						? 'text-zinc-600' 
-						: 'text-white group-hover:text-zinc-300 transition-colors duration-300'
-					}`}
+				<h3 className={`text-sm md:text-base font-normal mb-3 line-clamp-2 leading-snug
+					${isOutOfStock ? 'text-gray-400' : 'text-gray-900 group-hover:text-blue-700'}
+					transition-colors duration-200`}
 				>
 					{product.name}
 				</h3>
 				
-				<div className='mt-auto space-y-4'>
-					{/* Price */}
-					<div className='flex items-baseline'>
-						<span className={`text-2xl sm:text-3xl font-light tracking-tight
-							${isOutOfStock ? 'text-zinc-600' : 'text-white'}
+				{/* Price Section */}
+				<div className='mb-3'>
+					<div className='flex items-baseline gap-2 mb-1'>
+						<span className='text-xs align-super text-gray-900'>₹</span>
+						<span className={`text-2xl md:text-3xl font-normal
+							${isOutOfStock ? 'text-gray-400' : 'text-gray-900'}
 						`}>
-							${product.price}
+							{product.price.toLocaleString()}
 						</span>
 					</div>
-
-					{/* Action Buttons */}
-					<div className='flex gap-2 sm:gap-3'>
-						{/* Add to Cart Button */}
-						<button
-							className={`flex-1 flex items-center justify-center px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-medium uppercase tracking-wide
-							transform active:scale-95 overflow-hidden relative will-change-transform
-							${isOutOfStock
-								? 'bg-zinc-900 text-zinc-600 border border-zinc-800 cursor-not-allowed'
-								: isInCart && user
-									? 'bg-zinc-900 text-white border border-zinc-800 cursor-default transition-none'
-									: 'bg-white text-black hover:bg-zinc-900 hover:text-white border border-white hover:border-zinc-700 group/btn transition-[background-color,color,border-color] duration-300'
-							}`}
-							onClick={handleAddToCart}
-							disabled={(isInCart && user) || isOutOfStock}
-						>
-							{isOutOfStock ? (
-								<>
-									<PackageX className='w-4 h-4 mr-2' strokeWidth={1.5} />
-									<span>Out of Stock</span>
-								</>
-							) : !isInCart || !user ? (
-								<>
-									<div className='absolute inset-0 bg-zinc-900 transform translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300 will-change-transform' />
-									<ShoppingCart className='w-4 h-4 mr-2 relative z-10' strokeWidth={1.5} />
-									<span className='relative z-10'>Add</span>
-								</>
-							) : (
-								<>
-									<Check className='w-4 h-4 mr-2' strokeWidth={1.5} />
-									<span>In Cart</span>
-								</>
-							)}
-						</button>
-
-						{/* WhatsApp Button */}
-						<button
-							className={`flex items-center justify-center px-3 sm:px-4 py-2.5 sm:py-3 
-							border transform active:scale-95 will-change-transform
-							${isOutOfStock
-								? 'bg-zinc-900 border-zinc-800 text-zinc-600'
-								: 'bg-zinc-900 border-zinc-800 hover:border-green-600 hover:bg-green-600/10 transition-[border-color,background-color] duration-300'
-							}`}
-							onClick={handleWhatsApp}
-							title="Chat on WhatsApp"
-						>
-							<MessageCircle className={`w-4 h-4 ${isOutOfStock ? 'text-zinc-600' : 'text-green-500'}`} strokeWidth={1.5} />
-						</button>
+					<div className='flex items-center gap-2 flex-wrap'>
+						<span className='text-xs text-gray-600'>M.R.P:</span>
+						<span className='text-xs text-gray-600 line-through'>₹{Math.round(product.price * 1.3).toLocaleString()}</span>
+						<span className='text-xs text-red-700 font-medium'>(23% off)</span>
 					</div>
+					{!isOutOfStock && (
+						<div className='mt-2'>
+							<span className='inline-block bg-red-100 text-red-700 text-xs font-semibold px-2 py-1 rounded'>
+								Limited Time Offer
+							</span>
+						</div>
+					)}
+				</div>
+
+				{/* Stock Status */}
+				{!isOutOfStock && (
+					<div className='mb-4'>
+						<div className='text-sm text-green-700 font-medium'>
+							✓ In Stock - Ready to Ship
+						</div>
+						<div className='text-xs text-gray-600 mt-1'>
+							Free shipping on this product
+						</div>
+					</div>
+				)}
+
+				{/* Action Buttons */}
+				<div className='mt-auto flex gap-2'>
+					<button
+						className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200
+						${isOutOfStock
+							? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+							: isInCart && user
+								? 'bg-gray-100 text-gray-700 border border-gray-300'
+								: 'bg-blue-600 hover:bg-blue-700 text-white active:scale-95'
+						}`}
+						onClick={handleAddToCart}
+						disabled={(isInCart && user) || isOutOfStock}
+					>
+						{isOutOfStock ? (
+							<>
+								<PackageX className='w-4 h-4' strokeWidth={2} />
+								<span>Out of stock</span>
+							</>
+						) : !isInCart || !user ? (
+							<span>Add to cart</span>
+						) : (
+							<>
+								<Check className='w-4 h-4' strokeWidth={2} />
+								<span>In Cart</span>
+							</>
+						)}
+					</button>
+
+					<button
+						className={`flex-shrink-0 flex items-center justify-center gap-2 px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200
+						${isOutOfStock
+							? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+							: 'bg-green-600 hover:bg-green-700 text-white active:scale-95'
+						}`}
+						onClick={handleWhatsApp}
+						title="Chat on WhatsApp"
+						disabled={isOutOfStock}
+					>
+						<MessageCircle className='w-4 h-4' strokeWidth={2} />
+						<span className="hidden sm:inline">WhatsApp</span>
+					</button>
 				</div>
 			</div>
-
-			{/* Bottom accent line */}
-			<div className={`h-[1px] w-0 will-change-[width]
-				${isOutOfStock 
-					? 'bg-zinc-800' 
-					: 'bg-white group-hover:w-full transition-[width] duration-500'
-				}`} 
-			/>
 		</div>
 	);
-};
+});
+
+ProductCard.displayName = 'ProductCard';
 
 export default ProductCard;

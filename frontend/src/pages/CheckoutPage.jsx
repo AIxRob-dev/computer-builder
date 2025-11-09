@@ -69,8 +69,8 @@ const CheckoutPage = () => {
         key: keyId,
         amount: amount,
         currency: currency,
-        name: "Your Store Name",
-        description: "Purchase from Your Store",
+        name: "COMPUTER BUILDER",
+        description: "Purchase from Computer Builder",
         order_id: orderId,
         handler: async function (response) {
           try {
@@ -113,7 +113,7 @@ const CheckoutPage = () => {
           contact: shippingAddress.phone,
         },
         theme: {
-          color: "#ffffff",
+          color: "#2563eb",
         },
         modal: {
           ondismiss: function () {
@@ -144,18 +144,18 @@ const CheckoutPage = () => {
   };
 
   return (
-    <div className="min-h-screen py-8 sm:py-12 md:py-16 lg:py-20">
+    <div className="min-h-screen bg-gray-50 py-8 sm:py-12 md:py-16 lg:py-20">
       <div className="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
         {/* Back Button */}
         <motion.button
           onClick={() => navigate("/cart")}
-          className="inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-white 
-          transition-colors font-light tracking-wide mb-6 sm:mb-8 group"
+          className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 
+          transition-colors font-semibold tracking-wide mb-6 sm:mb-8 group"
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" strokeWidth={1.5} />
+          <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" strokeWidth={2} />
           <span>Back to Cart</span>
         </motion.button>
 
@@ -166,10 +166,10 @@ const CheckoutPage = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-light text-white tracking-tight">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 tracking-tight">
             Checkout
           </h1>
-          <p className="mt-2 text-sm sm:text-base text-zinc-400 font-light">
+          <p className="mt-2 text-sm sm:text-base text-gray-600 font-semibold">
             Complete your order
           </p>
         </motion.div>
@@ -195,11 +195,11 @@ const CheckoutPage = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
-            <div className="bg-zinc-950 border border-zinc-800/50 p-6 sm:p-8 lg:sticky lg:top-24">
+            <div className="bg-white border-2 border-blue-100 rounded-xl shadow-lg p-6 sm:p-8 lg:sticky lg:top-24">
               {/* Header */}
               <div className="flex items-center mb-6">
-                <ShoppingBag className="h-4 w-4 text-zinc-500 mr-2" strokeWidth={1.5} />
-                <h2 className="text-lg uppercase tracking-widest text-zinc-500 font-light">
+                <ShoppingBag className="h-4 w-4 text-blue-600 mr-2" strokeWidth={2} />
+                <h2 className="text-lg uppercase tracking-widest text-blue-600 font-bold">
                   Order Summary
                 </h2>
               </div>
@@ -209,12 +209,12 @@ const CheckoutPage = () => {
                 {cart.map((item, index) => (
                   <motion.div
                     key={item._id}
-                    className="flex items-center gap-3 pb-4 border-b border-zinc-800/50 last:border-0 last:pb-0"
+                    className="flex items-center gap-3 pb-4 border-b-2 border-blue-100 last:border-0 last:pb-0"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3, delay: index * 0.05 }}
                   >
-                    <div className="w-14 h-14 shrink-0 bg-black/30 border border-zinc-800 overflow-hidden">
+                    <div className="w-14 h-14 shrink-0 bg-gray-50 border-2 border-blue-100 rounded-lg overflow-hidden">
                       <img
                         src={item.image}
                         alt={item.name}
@@ -222,14 +222,14 @@ const CheckoutPage = () => {
                       />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs sm:text-sm text-white font-light line-clamp-1 tracking-tight">
+                      <p className="text-xs sm:text-sm text-gray-900 font-semibold line-clamp-1 tracking-tight">
                         {item.name}
                       </p>
-                      <p className="text-[10px] sm:text-xs text-zinc-500 font-light mt-0.5">
+                      <p className="text-[10px] sm:text-xs text-gray-600 font-semibold mt-0.5">
                         Qty: {item.quantity}
                       </p>
                     </div>
-                    <p className="text-xs sm:text-sm text-white font-light shrink-0">
+                    <p className="text-xs sm:text-sm text-gray-900 font-bold shrink-0">
                       ₹{(item.price * item.quantity).toFixed(2)}
                     </p>
                   </motion.div>
@@ -237,44 +237,44 @@ const CheckoutPage = () => {
               </div>
 
               {/* Price Breakdown */}
-              <div className="space-y-3 mb-6 pt-6 border-t border-zinc-800/50">
-                <div className="flex justify-between text-sm text-zinc-400 font-light">
+              <div className="space-y-3 mb-6 pt-6 border-t-2 border-blue-100">
+                <div className="flex justify-between text-sm text-gray-600 font-semibold">
                   <span>Subtotal ({cart.length} {cart.length === 1 ? 'item' : 'items'})</span>
                   <span>₹{subtotal.toFixed(2)}</span>
                 </div>
 
                 {savings > 0 && (
-                  <div className="flex justify-between text-sm text-white font-light">
+                  <div className="flex justify-between text-sm text-green-600 font-bold">
                     <span>Discount</span>
                     <span>-₹{savings.toFixed(2)}</span>
                   </div>
                 )}
 
                 {coupon && (
-                  <div className="flex justify-between text-sm text-zinc-400 font-light">
-                    <span>Coupon <span className="text-zinc-500 text-xs uppercase">({coupon.code})</span></span>
-                    <span>-{coupon.discountPercentage}%</span>
+                  <div className="flex justify-between text-sm text-gray-600 font-semibold">
+                    <span>Coupon <span className="text-blue-600 text-xs uppercase font-bold">({coupon.code})</span></span>
+                    <span className="text-green-600 font-bold">-{coupon.discountPercentage}%</span>
                   </div>
                 )}
 
-                <div className="flex justify-between text-base sm:text-lg pt-4 border-t border-zinc-800 font-light">
-                  <span className="text-white uppercase tracking-wide">Total</span>
-                  <span className="text-white">₹{total.toFixed(2)}</span>
+                <div className="flex justify-between text-base sm:text-lg pt-4 border-t-2 border-blue-100 font-bold">
+                  <span className="text-gray-900 uppercase tracking-wide">Total</span>
+                  <span className="text-gray-900">₹{total.toFixed(2)}</span>
                 </div>
               </div>
 
               {/* Address Preview */}
               {shippingAddress && (
                 <motion.div
-                  className="mb-6 p-4 bg-black/30 border border-zinc-800"
+                  className="mb-6 p-4 bg-blue-50 border-2 border-blue-200 rounded-lg"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <p className="text-xs uppercase tracking-widest text-zinc-500 font-light mb-2">
+                  <p className="text-xs uppercase tracking-widest text-blue-600 font-bold mb-2">
                     Delivering to:
                   </p>
-                  <p className="text-xs text-zinc-400 font-light leading-relaxed">
+                  <p className="text-xs text-gray-700 font-semibold leading-relaxed">
                     {shippingAddress.fullName}
                     <br />
                     {shippingAddress.addressLine1}
@@ -282,7 +282,7 @@ const CheckoutPage = () => {
                     <br />
                     {shippingAddress.city}, {shippingAddress.state} - {shippingAddress.pincode}
                     <br />
-                    <span className="text-zinc-500">Phone:</span> {shippingAddress.phone}
+                    <span className="text-gray-600">Phone:</span> {shippingAddress.phone}
                   </p>
                 </motion.div>
               )}
@@ -292,17 +292,14 @@ const CheckoutPage = () => {
                 onClick={shippingAddress ? handlePayment : triggerAddressFormSubmit}
                 disabled={isProcessing}
                 className={`group relative w-full flex justify-center items-center py-3 sm:py-4 px-4 
-                text-sm font-medium uppercase tracking-wide
+                text-sm font-bold uppercase tracking-wide rounded-lg
                 transition-all duration-300 overflow-hidden
                 ${
                   isProcessing
-                    ? "bg-zinc-800 text-zinc-500 cursor-not-allowed border border-zinc-700"
-                    : "bg-white text-black hover:bg-zinc-900 hover:text-white border border-white hover:border-zinc-700"
+                    ? "bg-gray-300 text-gray-500 cursor-not-allowed border-2 border-gray-300"
+                    : "bg-blue-600 text-white hover:bg-blue-700 border-2 border-blue-600 hover:border-blue-700 shadow-lg hover:shadow-xl"
                 }`}
               >
-                {!isProcessing && (
-                  <div className="absolute inset-0 bg-zinc-900 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-                )}
                 <span className="relative z-10">
                   {isProcessing
                     ? "Processing..."
@@ -313,9 +310,9 @@ const CheckoutPage = () => {
               </button>
 
               {/* Security Badge */}
-              <div className="mt-6 pt-6 border-t border-zinc-800/50 flex items-center justify-center gap-2">
-                <Lock className="h-3 w-3 text-zinc-600" strokeWidth={1.5} />
-                <p className="text-xs text-zinc-600 font-light uppercase tracking-widest">
+              <div className="mt-6 pt-6 border-t-2 border-blue-100 flex items-center justify-center gap-2">
+                <Lock className="h-3 w-3 text-blue-600" strokeWidth={2} />
+                <p className="text-xs text-blue-600 font-bold uppercase tracking-widest">
                   Secured by Razorpay
                 </p>
               </div>
@@ -327,17 +324,18 @@ const CheckoutPage = () => {
       {/* Custom Scrollbar Styles */}
       <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {
-          width: 4px;
+          width: 6px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-          background: #18181b;
+          background: #f3f4f6;
+          border-radius: 3px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #3f3f46;
-          border-radius: 2px;
+          background: #2563eb;
+          border-radius: 3px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #52525b;
+          background: #1d4ed8;
         }
       `}</style>
     </div>

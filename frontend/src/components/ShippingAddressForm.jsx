@@ -77,15 +77,15 @@ const ShippingAddressForm = ({ onAddressSubmit, initialAddress = null }) => {
 
   return (
     <motion.div
-      className="bg-zinc-950 border border-zinc-800/50 p-6 sm:p-8"
+      className="bg-white border-2 border-blue-100 rounded-xl shadow-lg p-6 sm:p-8"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
       {/* Header */}
       <div className="flex items-center mb-8">
-        <MapPin className="h-4 w-4 text-zinc-500 mr-2" strokeWidth={1.5} />
-        <h2 className="text-lg uppercase tracking-widest text-zinc-500 font-light">
+        <MapPin className="h-4 w-4 text-blue-600 mr-2" strokeWidth={2} />
+        <h2 className="text-lg uppercase tracking-widest text-blue-600 font-bold">
           Shipping Address
         </h2>
       </div>
@@ -93,8 +93,8 @@ const ShippingAddressForm = ({ onAddressSubmit, initialAddress = null }) => {
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Full Name */}
         <div>
-          <label htmlFor="fullName" className="block text-xs uppercase tracking-widest text-zinc-500 font-light mb-2">
-            Full Name <span className="text-white">*</span>
+          <label htmlFor="fullName" className="block text-xs uppercase tracking-widest text-gray-600 font-semibold mb-2">
+            Full Name <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
@@ -102,22 +102,22 @@ const ShippingAddressForm = ({ onAddressSubmit, initialAddress = null }) => {
             name="fullName"
             value={address.fullName}
             onChange={handleChange}
-            className={`block w-full px-4 py-3 bg-black/50 border ${
-              errors.fullName ? "border-red-500/50" : "border-zinc-800"
-            } text-white placeholder-zinc-600 
-            focus:outline-none focus:border-zinc-700 focus:ring-1 focus:ring-zinc-700
-            transition-all duration-300 font-light`}
+            className={`block w-full px-4 py-3 bg-gray-50 border-2 rounded-lg ${
+              errors.fullName ? "border-red-500" : "border-gray-200"
+            } text-gray-900 placeholder-gray-400 font-medium
+            focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20
+            transition-all duration-300`}
             placeholder="Enter your full name"
           />
           {errors.fullName && (
-            <p className="mt-2 text-xs text-red-400 font-light">{errors.fullName}</p>
+            <p className="mt-2 text-xs text-red-500 font-semibold">{errors.fullName}</p>
           )}
         </div>
 
         {/* Phone Number */}
         <div>
-          <label htmlFor="phone" className="block text-xs uppercase tracking-widest text-zinc-500 font-light mb-2">
-            Phone Number <span className="text-white">*</span>
+          <label htmlFor="phone" className="block text-xs uppercase tracking-widest text-gray-600 font-semibold mb-2">
+            Phone Number <span className="text-red-500">*</span>
           </label>
           <input
             type="tel"
@@ -125,23 +125,23 @@ const ShippingAddressForm = ({ onAddressSubmit, initialAddress = null }) => {
             name="phone"
             value={address.phone}
             onChange={handleChange}
-            className={`block w-full px-4 py-3 bg-black/50 border ${
-              errors.phone ? "border-red-500/50" : "border-zinc-800"
-            } text-white placeholder-zinc-600 
-            focus:outline-none focus:border-zinc-700 focus:ring-1 focus:ring-zinc-700
-            transition-all duration-300 font-light`}
+            className={`block w-full px-4 py-3 bg-gray-50 border-2 rounded-lg ${
+              errors.phone ? "border-red-500" : "border-gray-200"
+            } text-gray-900 placeholder-gray-400 font-medium
+            focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20
+            transition-all duration-300`}
             placeholder="10-digit mobile number"
             maxLength="10"
           />
           {errors.phone && (
-            <p className="mt-2 text-xs text-red-400 font-light">{errors.phone}</p>
+            <p className="mt-2 text-xs text-red-500 font-semibold">{errors.phone}</p>
           )}
         </div>
 
         {/* Address Line 1 */}
         <div>
-          <label htmlFor="addressLine1" className="block text-xs uppercase tracking-widest text-zinc-500 font-light mb-2">
-            Address Line 1 <span className="text-white">*</span>
+          <label htmlFor="addressLine1" className="block text-xs uppercase tracking-widest text-gray-600 font-semibold mb-2">
+            Address Line 1 <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
@@ -149,22 +149,22 @@ const ShippingAddressForm = ({ onAddressSubmit, initialAddress = null }) => {
             name="addressLine1"
             value={address.addressLine1}
             onChange={handleChange}
-            className={`block w-full px-4 py-3 bg-black/50 border ${
-              errors.addressLine1 ? "border-red-500/50" : "border-zinc-800"
-            } text-white placeholder-zinc-600 
-            focus:outline-none focus:border-zinc-700 focus:ring-1 focus:ring-zinc-700
-            transition-all duration-300 font-light`}
+            className={`block w-full px-4 py-3 bg-gray-50 border-2 rounded-lg ${
+              errors.addressLine1 ? "border-red-500" : "border-gray-200"
+            } text-gray-900 placeholder-gray-400 font-medium
+            focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20
+            transition-all duration-300`}
             placeholder="House/Flat No., Building Name"
           />
           {errors.addressLine1 && (
-            <p className="mt-2 text-xs text-red-400 font-light">{errors.addressLine1}</p>
+            <p className="mt-2 text-xs text-red-500 font-semibold">{errors.addressLine1}</p>
           )}
         </div>
 
         {/* Address Line 2 (Optional) */}
         <div>
-          <label htmlFor="addressLine2" className="block text-xs uppercase tracking-widest text-zinc-500 font-light mb-2">
-            Address Line 2 <span className="text-zinc-600 text-[10px]">(Optional)</span>
+          <label htmlFor="addressLine2" className="block text-xs uppercase tracking-widest text-gray-600 font-semibold mb-2">
+            Address Line 2 <span className="text-gray-400 text-[10px] font-semibold">(Optional)</span>
           </label>
           <input
             type="text"
@@ -172,10 +172,10 @@ const ShippingAddressForm = ({ onAddressSubmit, initialAddress = null }) => {
             name="addressLine2"
             value={address.addressLine2}
             onChange={handleChange}
-            className="block w-full px-4 py-3 bg-black/50 border border-zinc-800 
-            text-white placeholder-zinc-600 
-            focus:outline-none focus:border-zinc-700 focus:ring-1 focus:ring-zinc-700
-            transition-all duration-300 font-light"
+            className="block w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-lg
+            text-gray-900 placeholder-gray-400 font-medium
+            focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20
+            transition-all duration-300"
             placeholder="Street, Landmark"
           />
         </div>
@@ -183,8 +183,8 @@ const ShippingAddressForm = ({ onAddressSubmit, initialAddress = null }) => {
         {/* City and State in same row */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           <div>
-            <label htmlFor="city" className="block text-xs uppercase tracking-widest text-zinc-500 font-light mb-2">
-              City <span className="text-white">*</span>
+            <label htmlFor="city" className="block text-xs uppercase tracking-widest text-gray-600 font-semibold mb-2">
+              City <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -192,21 +192,21 @@ const ShippingAddressForm = ({ onAddressSubmit, initialAddress = null }) => {
               name="city"
               value={address.city}
               onChange={handleChange}
-              className={`block w-full px-4 py-3 bg-black/50 border ${
-                errors.city ? "border-red-500/50" : "border-zinc-800"
-              } text-white placeholder-zinc-600 
-              focus:outline-none focus:border-zinc-700 focus:ring-1 focus:ring-zinc-700
-              transition-all duration-300 font-light`}
+              className={`block w-full px-4 py-3 bg-gray-50 border-2 rounded-lg ${
+                errors.city ? "border-red-500" : "border-gray-200"
+              } text-gray-900 placeholder-gray-400 font-medium
+              focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20
+              transition-all duration-300`}
               placeholder="Enter city"
             />
             {errors.city && (
-              <p className="mt-2 text-xs text-red-400 font-light">{errors.city}</p>
+              <p className="mt-2 text-xs text-red-500 font-semibold">{errors.city}</p>
             )}
           </div>
 
           <div>
-            <label htmlFor="state" className="block text-xs uppercase tracking-widest text-zinc-500 font-light mb-2">
-              State <span className="text-white">*</span>
+            <label htmlFor="state" className="block text-xs uppercase tracking-widest text-gray-600 font-semibold mb-2">
+              State <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -214,15 +214,15 @@ const ShippingAddressForm = ({ onAddressSubmit, initialAddress = null }) => {
               name="state"
               value={address.state}
               onChange={handleChange}
-              className={`block w-full px-4 py-3 bg-black/50 border ${
-                errors.state ? "border-red-500/50" : "border-zinc-800"
-              } text-white placeholder-zinc-600 
-              focus:outline-none focus:border-zinc-700 focus:ring-1 focus:ring-zinc-700
-              transition-all duration-300 font-light`}
+              className={`block w-full px-4 py-3 bg-gray-50 border-2 rounded-lg ${
+                errors.state ? "border-red-500" : "border-gray-200"
+              } text-gray-900 placeholder-gray-400 font-medium
+              focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20
+              transition-all duration-300`}
               placeholder="Enter state"
             />
             {errors.state && (
-              <p className="mt-2 text-xs text-red-400 font-light">{errors.state}</p>
+              <p className="mt-2 text-xs text-red-500 font-semibold">{errors.state}</p>
             )}
           </div>
         </div>
@@ -230,8 +230,8 @@ const ShippingAddressForm = ({ onAddressSubmit, initialAddress = null }) => {
         {/* Pincode and Country in same row */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           <div>
-            <label htmlFor="pincode" className="block text-xs uppercase tracking-widest text-zinc-500 font-light mb-2">
-              Pincode <span className="text-white">*</span>
+            <label htmlFor="pincode" className="block text-xs uppercase tracking-widest text-gray-600 font-semibold mb-2">
+              Pincode <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -239,21 +239,21 @@ const ShippingAddressForm = ({ onAddressSubmit, initialAddress = null }) => {
               name="pincode"
               value={address.pincode}
               onChange={handleChange}
-              className={`block w-full px-4 py-3 bg-black/50 border ${
-                errors.pincode ? "border-red-500/50" : "border-zinc-800"
-              } text-white placeholder-zinc-600 
-              focus:outline-none focus:border-zinc-700 focus:ring-1 focus:ring-zinc-700
-              transition-all duration-300 font-light`}
+              className={`block w-full px-4 py-3 bg-gray-50 border-2 rounded-lg ${
+                errors.pincode ? "border-red-500" : "border-gray-200"
+              } text-gray-900 placeholder-gray-400 font-medium
+              focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20
+              transition-all duration-300`}
               placeholder="6-digit pincode"
               maxLength="6"
             />
             {errors.pincode && (
-              <p className="mt-2 text-xs text-red-400 font-light">{errors.pincode}</p>
+              <p className="mt-2 text-xs text-red-500 font-semibold">{errors.pincode}</p>
             )}
           </div>
 
           <div>
-            <label htmlFor="country" className="block text-xs uppercase tracking-widest text-zinc-500 font-light mb-2">
+            <label htmlFor="country" className="block text-xs uppercase tracking-widest text-gray-600 font-semibold mb-2">
               Country
             </label>
             <input
@@ -262,8 +262,8 @@ const ShippingAddressForm = ({ onAddressSubmit, initialAddress = null }) => {
               name="country"
               value={address.country}
               readOnly
-              className="block w-full px-4 py-3 bg-black/30 border border-zinc-800 
-              text-zinc-500 cursor-not-allowed font-light"
+              className="block w-full px-4 py-3 bg-gray-100 border-2 border-gray-200 rounded-lg
+              text-gray-500 cursor-not-allowed font-medium"
             />
           </div>
         </div>
@@ -275,8 +275,8 @@ const ShippingAddressForm = ({ onAddressSubmit, initialAddress = null }) => {
       </form>
 
       {/* Info Footer */}
-      <div className="mt-8 pt-6 border-t border-zinc-800/50">
-        <p className="text-center text-xs text-zinc-600 font-light uppercase tracking-widest">
+      <div className="mt-8 pt-6 border-t-2 border-blue-100">
+        <p className="text-center text-xs text-blue-600 font-bold uppercase tracking-widest">
           Secure & Confidential
         </p>
       </div>

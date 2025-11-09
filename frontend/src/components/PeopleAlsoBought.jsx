@@ -3,6 +3,10 @@ import ProductCard from "./ProductCard";
 import axios from "../lib/axios";
 import toast from "react-hot-toast";
 import LoadingSpinner from "./LoadingSpinner";
+import { useNavigate } from "react-router-dom";
+import { useUserStore } from "../stores/useUserStore";
+import { useCartStore } from "../stores/useCartStore";
+import { ShoppingCart, Check, PackageX } from "lucide-react";
 
 const PeopleAlsoBought = () => {
 	const [recommendations, setRecommendations] = useState([]);
@@ -32,8 +36,8 @@ const PeopleAlsoBought = () => {
 			{/* Section Header */}
 			<div className='mb-6 sm:mb-8'>
 				<div className='flex items-center gap-3 mb-2'>
-					<div className='h-[1px] w-8 sm:w-12 bg-zinc-700' />
-					<h3 className='text-xs sm:text-sm uppercase tracking-[0.3em] text-zinc-500 font-light'>
+					<div className='h-[2px] w-8 sm:w-12 bg-blue-600' />
+					<h3 className='text-xs sm:text-sm uppercase tracking-[0.3em] text-blue-600 font-bold'>
 						You May Also Like
 					</h3>
 				</div>
@@ -92,19 +96,19 @@ const CompactProductCard = ({ product }) => {
 	return (
 		<div 
 			className={`group w-full flex flex-col overflow-hidden cursor-pointer 
-			bg-zinc-950 border transition-all duration-300 relative
+			bg-white rounded-lg shadow-md transition-all duration-300 relative
 			${isOutOfStock 
-				? 'border-zinc-900/50 opacity-70' 
-				: 'border-zinc-800/50 hover:border-zinc-700 hover:shadow-xl hover:shadow-zinc-900/30'
+				? 'border-2 border-gray-200 opacity-70' 
+				: 'border-2 border-blue-100 hover:border-blue-600 hover:shadow-xl'
 			}`}
 			onClick={handleCardClick}
 		>
 			{/* Out of Stock Badge - Compact */}
 			{isOutOfStock && (
-				<div className='absolute top-0 left-0 right-0 z-20 bg-zinc-900/95 backdrop-blur-sm border-b border-zinc-800 py-1 px-2'>
+				<div className='absolute top-0 left-0 right-0 z-20 bg-gray-100 backdrop-blur-sm border-b-2 border-gray-200 rounded-t-lg py-1 px-2'>
 					<div className='flex items-center justify-center gap-1'>
-						<PackageX className='w-3 h-3 text-zinc-600' strokeWidth={1.5} />
-						<span className='text-[9px] sm:text-[10px] font-light uppercase tracking-wider text-zinc-600'>
+						<PackageX className='w-3 h-3 text-gray-500' strokeWidth={2} />
+						<span className='text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-gray-500'>
 							Out of Stock
 						</span>
 					</div>
@@ -112,7 +116,7 @@ const CompactProductCard = ({ product }) => {
 			)}
 
 			{/* Compact Image Container */}
-			<div className={`relative w-full aspect-[3/4] overflow-hidden bg-zinc-900/30 ${isOutOfStock ? 'mt-6' : ''}`}>
+			<div className={`relative w-full aspect-[3/4] overflow-hidden bg-gray-50 ${isOutOfStock ? 'mt-6' : ''}`}>
 				<img 
 					className={`w-full h-full object-contain p-2 sm:p-3 transition-all duration-500 ease-out 
 					${isOutOfStock 
@@ -126,24 +130,24 @@ const CompactProductCard = ({ product }) => {
 				
 				{/* Out of Stock Overlay - Compact */}
 				{isOutOfStock && (
-					<div className='absolute inset-0 flex items-center justify-center bg-black/30'>
-						<PackageX className='w-8 h-8 text-zinc-600' strokeWidth={1} />
+					<div className='absolute inset-0 flex items-center justify-center bg-gray-200/30'>
+						<PackageX className='w-8 h-8 text-gray-400' strokeWidth={1.5} />
 					</div>
 				)}
 				
 				{/* Hover overlay for in-stock products */}
 				{!isOutOfStock && (
-					<div className='absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
+					<div className='absolute inset-0 bg-gradient-to-t from-blue-600/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
 				)}
 			</div>
 
 			{/* Compact Product Info */}
 			<div className='flex flex-col flex-grow p-2 sm:p-3'>
 				{/* Product Name - Compact */}
-				<h3 className={`text-xs sm:text-sm font-light tracking-wide mb-2 line-clamp-2 min-h-[2rem] sm:min-h-[2.5rem] transition-colors duration-300
+				<h3 className={`text-xs sm:text-sm font-semibold tracking-wide mb-2 line-clamp-2 min-h-[2rem] sm:min-h-[2.5rem] transition-colors duration-300
 					${isOutOfStock 
-						? 'text-zinc-600' 
-						: 'text-white group-hover:text-zinc-300'
+						? 'text-gray-400' 
+						: 'text-gray-900 group-hover:text-blue-600'
 					}`}
 				>
 					{product.name}
@@ -152,41 +156,40 @@ const CompactProductCard = ({ product }) => {
 				<div className='mt-auto space-y-2'>
 					{/* Price - Compact */}
 					<div className='flex items-baseline'>
-						<span className={`text-base sm:text-lg font-light tracking-tight
-							${isOutOfStock ? 'text-zinc-600' : 'text-white'}
+						<span className={`text-base sm:text-lg font-bold tracking-tight
+							${isOutOfStock ? 'text-gray-400' : 'text-gray-900'}
 						`}>
-							${product.price}
+							₹{product.price}
 						</span>
 					</div>
 
 					{/* Compact Action Button */}
 					<button
-						className={`w-full flex items-center justify-center px-2 py-1.5 sm:py-2 text-[10px] sm:text-xs font-medium uppercase tracking-wide
+						className={`w-full flex items-center justify-center px-2 py-1.5 sm:py-2 text-[10px] sm:text-xs font-bold uppercase tracking-wide rounded-lg
 						transition-all duration-300 transform active:scale-95 overflow-hidden relative
 						${isOutOfStock
-							? 'bg-zinc-900 text-zinc-600 border border-zinc-800 cursor-not-allowed'
+							? 'bg-gray-100 text-gray-400 border-2 border-gray-200 cursor-not-allowed'
 							: isInCart && user
-								? 'bg-zinc-900 text-white border border-zinc-800 cursor-default'
-								: 'bg-white text-black hover:bg-zinc-900 hover:text-white border border-white hover:border-zinc-700 group/btn'
+								? 'bg-green-50 text-green-600 border-2 border-green-200 cursor-default'
+								: 'bg-blue-600 text-white hover:bg-blue-700 border-2 border-blue-600 hover:border-blue-700 shadow-md hover:shadow-lg group/btn'
 						}`}
 						onClick={handleAddToCart}
 						disabled={(isInCart && user) || isOutOfStock}
 					>
 						{isOutOfStock ? (
 							<>
-								<PackageX className='w-3 h-3 mr-1' strokeWidth={1.5} />
+								<PackageX className='w-3 h-3 mr-1' strokeWidth={2} />
 								<span className='hidden sm:inline'>Unavailable</span>
 								<span className='sm:hidden'>N/A</span>
 							</>
 						) : !isInCart || !user ? (
 							<>
-								<div className='absolute inset-0 bg-zinc-900 transform translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300' />
-								<ShoppingCart className='w-3 h-3 mr-1 relative z-10' strokeWidth={1.5} />
-								<span className='relative z-10'>Add</span>
+								<ShoppingCart className='w-3 h-3 mr-1 relative z-10' strokeWidth={2} />
+								<span className='relative z-10'>Add to Cart</span>
 							</>
 						) : (
 							<>
-								<Check className='w-3 h-3 mr-1' strokeWidth={1.5} />
+								<Check className='w-3 h-3 mr-1' strokeWidth={2} />
 								<span>In Cart</span>
 							</>
 						)}
@@ -195,20 +198,14 @@ const CompactProductCard = ({ product }) => {
 			</div>
 
 			{/* Bottom accent line - Compact */}
-			<div className={`h-[1px] w-0 transition-all duration-300
+			<div className={`h-[2px] w-0 transition-all duration-300 rounded-b-lg
 				${isOutOfStock 
-					? 'bg-zinc-800' 
-					: 'bg-white group-hover:w-full'
+					? 'bg-gray-300' 
+					: 'bg-blue-600 group-hover:w-full'
 				}`} 
 			/>
 		</div>
 	);
 };
-
-// Import required hooks and components
-import { useNavigate } from "react-router-dom";
-import { useUserStore } from "../stores/useUserStore";
-import { useCartStore } from "../stores/useCartStore";
-import { ShoppingCart, Check, PackageX } from "lucide-react";
 
 export default PeopleAlsoBought;

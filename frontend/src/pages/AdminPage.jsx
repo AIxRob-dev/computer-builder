@@ -22,7 +22,7 @@ const AdminPage = () => {
 	}, [fetchAllProducts]);
 
 	return (
-		<div className='min-h-screen bg-gradient-to-br from-zinc-950 via-black to-zinc-900'>
+		<div className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50'>
 			<div className='relative z-10 max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-8 sm:py-12 lg:py-16'>
 				{/* Header Section */}
 				<motion.div
@@ -33,21 +33,21 @@ const AdminPage = () => {
 				>
 					{/* Top Accent Line */}
 					<div className='flex items-center gap-3 mb-4'>
-						<div className='h-[1px] w-8 sm:w-12 bg-zinc-700' />
-						<span className='text-[10px] sm:text-xs uppercase tracking-[0.3em] text-zinc-600 font-light'>
+						<div className='h-[2px] w-8 sm:w-12 bg-blue-300' />
+						<span className='text-[10px] sm:text-xs uppercase tracking-[0.3em] text-blue-600 font-bold'>
 							Administration
 						</span>
 					</div>
 
 					{/* Main Title */}
-					<h1 className='text-3xl sm:text-4xl lg:text-5xl font-light text-white tracking-tight'>
+					<h1 className='text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 tracking-tight'>
 						Dashboard
 					</h1>
 				</motion.div>
 
 				{/* Tab Navigation - Desktop */}
 				<motion.div 
-					className='hidden sm:flex items-center justify-start gap-2 mb-8 lg:mb-12 border-b border-zinc-800/50 pb-0.5'
+					className='hidden sm:flex items-center justify-start gap-2 mb-8 lg:mb-12 border-b-2 border-blue-100 pb-0.5'
 					initial={{ opacity: 0, y: 20 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ duration: 0.6, delay: 0.2 }}
@@ -56,21 +56,21 @@ const AdminPage = () => {
 						<button
 							key={tab.id}
 							onClick={() => setActiveTab(tab.id)}
-							className={`group relative flex items-center gap-2 px-4 lg:px-6 py-3 text-sm lg:text-base font-light uppercase tracking-wide
-							transition-all duration-300 border-b-2
+							className={`group relative flex items-center gap-2 px-4 lg:px-6 py-3 text-sm lg:text-base font-bold uppercase tracking-wide
+							transition-all duration-300 border-b-2 rounded-t-lg
 							${activeTab === tab.id
-								? 'text-white border-white'
-								: 'text-zinc-500 border-transparent hover:text-zinc-300 hover:border-zinc-700'
+								? 'text-blue-600 border-blue-600 bg-blue-50'
+								: 'text-gray-500 border-transparent hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50/50'
 							}`}
 						>
-							<tab.icon className='w-4 h-4 lg:w-5 lg:h-5' strokeWidth={1.5} />
+							<tab.icon className='w-4 h-4 lg:w-5 lg:h-5' strokeWidth={2} />
 							<span>{tab.label}</span>
 							
 							{/* Subtle background on active */}
 							{activeTab === tab.id && (
 								<motion.div
 									layoutId="activeTab"
-									className='absolute inset-0 bg-zinc-900/30 -z-10'
+									className='absolute inset-0 bg-blue-100/30 -z-10 rounded-t-lg'
 									transition={{ type: "spring", duration: 0.6 }}
 								/>
 							)}
@@ -91,20 +91,20 @@ const AdminPage = () => {
 								key={tab.id}
 								onClick={() => setActiveTab(tab.id)}
 								className={`relative flex flex-col items-center justify-center gap-1.5 py-3 px-2
-								border transition-all duration-300
+								border-2 rounded-lg transition-all duration-300
 								${activeTab === tab.id
-									? 'bg-zinc-900 border-zinc-700 text-white'
-									: 'bg-zinc-950 border-zinc-800/50 text-zinc-500 hover:border-zinc-700 hover:text-zinc-300'
+									? 'bg-blue-50 border-blue-300 text-blue-600'
+									: 'bg-white border-blue-100 text-gray-500 hover:border-blue-300 hover:text-blue-600'
 								}`}
 							>
-								<tab.icon className='w-5 h-5' strokeWidth={1.5} />
-								<span className='text-[10px] uppercase tracking-wider font-light'>
+								<tab.icon className='w-5 h-5' strokeWidth={2} />
+								<span className='text-[10px] uppercase tracking-wider font-bold'>
 									{tab.label}
 								</span>
 								
 								{/* Active indicator */}
 								{activeTab === tab.id && (
-									<div className='absolute bottom-0 left-0 right-0 h-[2px] bg-white' />
+									<div className='absolute bottom-0 left-0 right-0 h-[2px] bg-blue-600 rounded-b-lg' />
 								)}
 							</button>
 						))}
@@ -121,7 +121,7 @@ const AdminPage = () => {
 					className='relative'
 				>
 					{/* Content Background */}
-					<div className='bg-zinc-950/50 border border-zinc-800/50 p-4 sm:p-6 lg:p-8'>
+					<div className='bg-white/50 backdrop-blur-sm border-2 border-blue-100 rounded-xl shadow-lg p-4 sm:p-6 lg:p-8'>
 						{activeTab === "create" && <CreateProductForm />}
 						{activeTab === "products" && <ProductsList />}
 						{activeTab === "analytics" && <AnalyticsTab />}
@@ -130,7 +130,7 @@ const AdminPage = () => {
 
 				{/* Bottom Accent Line */}
 				<div className='mt-12 sm:mt-16 flex items-center gap-3'>
-					<div className='h-[1px] flex-1 bg-gradient-to-r from-zinc-800 to-transparent' />
+					<div className='h-[2px] flex-1 bg-gradient-to-r from-blue-300 to-transparent rounded' />
 				</div>
 			</div>
 		</div>

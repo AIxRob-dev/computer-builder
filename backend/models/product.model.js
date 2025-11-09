@@ -29,9 +29,16 @@ const productSchema = new mongoose.Schema(
 				message: "You can add maximum 3 additional images"
 			}
 		},
+		// UPDATED: category is now an array to support multiple categories
 		category: {
-			type: String,
+			type: [String],
 			required: true,
+			validate: {
+				validator: function(arr) {
+					return arr.length > 0;
+				},
+				message: "At least one category is required"
+			}
 		},
 		isFeatured: {
 			type: Boolean,
@@ -41,10 +48,22 @@ const productSchema = new mongoose.Schema(
 			type: Boolean,
 			default: false,
 		},
-		// NEW FIELD: Stock Status
 		inStock: {
 			type: Boolean,
 			default: true,
+		},
+		// PC Configurations/Specifications
+		configurations: {
+			processor: { type: String, default: "" },
+			motherboard: { type: String, default: "" },
+			ram: { type: String, default: "" },
+			storage: { type: String, default: "" },
+			graphicsCard: { type: String, default: "" },
+			powerSupply: { type: String, default: "" },
+			caseType: { type: String, default: "" },
+			cooling: { type: String, default: "" },
+			operatingSystem: { type: String, default: "" },
+			additionalSpecs: { type: String, default: "" }
 		},
 	},
 	{ timestamps: true }

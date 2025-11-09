@@ -58,6 +58,23 @@ export const useProductStore = create((set) => ({
 		}
 	},
 	
+	// NEW: Fetch products by multiple categories
+	fetchProductsByMultipleCategories: async (categories) => {
+		set({ loading: true });
+		try {
+			// categories should be an array: ['gaming', 'laptop', 'desktop']
+			const categoriesString = Array.isArray(categories) 
+				? categories.join(',') 
+				: categories;
+			
+			const response = await axios.get(`/products/categories/filter?categories=${categoriesString}`);
+			set({ products: response.data.products, loading: false });
+		} catch (error) {
+			set({ error: "Failed to fetch products", loading: false });
+			toast.error(error.response?.data?.error || "Failed to fetch products");
+		}
+	},
+	
 	deleteProduct: async (productId) => {
 		set({ loading: true });
 		try {
@@ -107,7 +124,6 @@ export const useProductStore = create((set) => ({
 		}
 	},
 	
-	// NEW: Toggle Stock Status
 	toggleStockStatus: async (productId) => {
 		set({ loading: true });
 		try {

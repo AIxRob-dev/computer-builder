@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShoppingCart, ArrowLeft, ChevronLeft, ChevronRight, X, ZoomIn, Check, MessageCircle, PackageX } from "lucide-react";
+import { ShoppingCart, ArrowLeft, ChevronLeft, ChevronRight, X, ZoomIn, Check, MessageCircle, PackageX, Truck, Shield, RotateCcw, Cpu, Monitor, HardDrive, Zap, Box, Fan, Computer } from "lucide-react";
 import toast from "react-hot-toast";
 import { useUserStore } from "../stores/useUserStore";
 import { useCartStore } from "../stores/useCartStore";
 import { useProductStore } from "../stores/useProductStore";
+import ProductRecommendations from "../components/ProductRecommendations";
 
 const ProductDetailPage = () => {
 	const { id } = useParams();
@@ -23,7 +24,6 @@ const ProductDetailPage = () => {
 	const [touchStart, setTouchStart] = useState(0);
 	const [touchEnd, setTouchEnd] = useState(0);
 
-	// Check if product is already in cart and stock status
 	const isInCart = cart.some(item => item._id === product?._id);
 	const isOutOfStock = product?.inStock === false;
 
@@ -31,17 +31,14 @@ const ProductDetailPage = () => {
 		const loadProduct = async () => {
 			setLoading(true);
 			
-			// First try to find in existing products array
 			let foundProduct = products.find(p => p._id === id);
 			
-			// If not found, fetch from API
 			if (!foundProduct) {
 				foundProduct = await fetchProductById(id);
 			}
 			
 			setProduct(foundProduct);
 
-			// Combine main image and additional images into one array
 			if (foundProduct) {
 				const images = [foundProduct.image];
 				if (foundProduct.additionalImages && foundProduct.additionalImages.length > 0) {
@@ -82,9 +79,9 @@ const ProductDetailPage = () => {
 
 	const handleWhatsApp = () => {
 		const message = encodeURIComponent(
-			`Hi! I'm interested in this product:\n${product.name}\nPrice: $${product.price}\nLink: ${window.location.href}`
+			`Hi! I'm interested in this product:\n${product.name}\nPrice: ₹${product.price}\nLink: ${window.location.href}`
 		);
-		const phoneNumber = "1234567890"; // Update with your actual number
+		const phoneNumber = "1234567890";
 		window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank');
 	};
 
@@ -92,7 +89,6 @@ const ProductDetailPage = () => {
 		navigate(-1);
 	};
 
-	// Touch handlers for mobile swipe on main image
 	const handleTouchStart = (e) => {
 		setTouchStart(e.targetTouches[0].clientX);
 	};
@@ -146,7 +142,6 @@ const ProductDetailPage = () => {
 		setLightboxImageIndex((prev) => (prev === allImages.length - 1 ? 0 : prev + 1));
 	};
 
-	// Handle keyboard navigation in lightbox
 	useEffect(() => {
 		if (!isLightboxOpen) return;
 
@@ -160,12 +155,26 @@ const ProductDetailPage = () => {
 		return () => window.removeEventListener('keydown', handleKeyDown);
 	}, [isLightboxOpen, allImages.length]);
 
+	const hasConfigurations = product?.configurations && Object.values(product.configurations).some(value => value && value.trim() !== '');
+
+	const configurationItems = [
+		{ key: 'processor', label: 'Processor', icon: Cpu },
+		{ key: 'motherboard', label: 'Motherboard', icon: Computer },
+		{ key: 'ram', label: 'RAM', icon: Zap },
+		{ key: 'storage', label: 'Storage', icon: HardDrive },
+		{ key: 'graphicsCard', label: 'Graphics Card', icon: Monitor },
+		{ key: 'powerSupply', label: 'Power Supply', icon: Zap },
+		{ key: 'caseType', label: 'Case', icon: Box },
+		{ key: 'cooling', label: 'Cooling', icon: Fan },
+		{ key: 'operatingSystem', label: 'Operating System', icon: Computer },
+	];
+
 	if (loading) {
 		return (
-			<div className='min-h-screen bg-gradient-to-br from-zinc-950 via-black to-zinc-900 flex items-center justify-center'>
+			<div className='min-h-screen bg-gray-50 flex items-center justify-center'>
 				<div className='text-center'>
-					<div className='inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-white mb-4'></div>
-					<p className='text-xl text-zinc-400 font-light'>Loading product...</p>
+					<div className='inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4'></div>
+					<p className='text-xl text-gray-600'>Loading product...</p>
 				</div>
 			</div>
 		);
@@ -173,12 +182,12 @@ const ProductDetailPage = () => {
 
 	if (!product) {
 		return (
-			<div className='min-h-screen bg-gradient-to-br from-zinc-950 via-black to-zinc-900 flex items-center justify-center'>
+			<div className='min-h-screen bg-gray-50 flex items-center justify-center'>
 				<div className='text-center'>
-					<p className='text-2xl text-white mb-4 font-light'>Product not found</p>
+					<p className='text-2xl text-gray-900 mb-4'>Product not found</p>
 					<button 
 						onClick={() => navigate('/')}
-						className='text-zinc-400 hover:text-white transition-colors font-light'
+						className='text-blue-600 hover:text-blue-700 transition-colors'
 					>
 						Return to Home
 					</button>
@@ -188,400 +197,475 @@ const ProductDetailPage = () => {
 	}
 
 	return (
-		<div className='min-h-screen bg-gradient-to-br from-zinc-950 via-black to-zinc-900 py-8 sm:py-12 lg:py-16'>
-			<div className='max-w-7xl mx-auto px-3 sm:px-4 lg:px-8'>
-				{/* Back Button */}
-				<motion.button
-					initial={{ opacity: 0, x: -20 }}
-					animate={{ opacity: 1, x: 0 }}
-					transition={{ duration: 0.5 }}
-					onClick={handleGoBack}
-					className='flex items-center text-white hover:text-zinc-300 mb-6 sm:mb-8 lg:mb-10 group transition-colors'
-				>
-					<ArrowLeft className='mr-2 group-hover:-translate-x-1 transition-transform' size={20} strokeWidth={1.5} />
-					<span className='text-sm sm:text-base font-light tracking-wide'>Back</span>
-				</motion.button>
-
-				{/* Out of Stock Banner - Full Width */}
-				{isOutOfStock && (
-					<motion.div
-						initial={{ opacity: 0, y: -10 }}
-						animate={{ opacity: 1, y: 0 }}
-						className='mb-6 bg-zinc-900/95 backdrop-blur-sm border border-zinc-800 py-3 px-4 sm:px-6'
+		<div className='min-h-screen bg-gray-50'>
+			<div className='py-4 sm:py-6 lg:py-8'>
+				<div className='max-w-7xl mx-auto px-3 sm:px-4 lg:px-6'>
+					<motion.button
+						initial={{ opacity: 0, x: -20 }}
+						animate={{ opacity: 1, x: 0 }}
+						transition={{ duration: 0.5 }}
+						onClick={handleGoBack}
+						className='flex items-center text-blue-600 hover:text-blue-700 mb-4 sm:mb-6 group transition-colors'
 					>
-						<div className='flex items-center justify-center gap-2'>
-							<PackageX className='w-5 h-5 text-zinc-500' strokeWidth={1.5} />
-							<span className='text-sm sm:text-base font-light uppercase tracking-wider text-zinc-500'>
-								This product is currently out of stock
-							</span>
-						</div>
-					</motion.div>
-				)}
+						<ArrowLeft className='mr-2 group-hover:-translate-x-1 transition-transform' size={20} />
+						<span className='text-sm sm:text-base'>Back to Products</span>
+					</motion.button>
 
-				<motion.div
-					initial={{ opacity: 0, y: 20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.6 }}
-					className='grid lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12'
-				>
-					{/* Image Gallery Section */}
-					<div className='space-y-3 sm:space-y-4'>
-						{/* Main Image Display */}
-						<div 
-							className='relative overflow-hidden border border-zinc-800/50 bg-zinc-950 group'
-							onTouchStart={handleTouchStart}
-							onTouchMove={handleTouchMove}
-							onTouchEnd={handleTouchEnd}
-						>
-							<AnimatePresence mode='wait'>
-								<motion.div
-									key={selectedImageIndex}
-									initial={{ opacity: 0 }}
-									animate={{ opacity: 1 }}
-									exit={{ opacity: 0 }}
-									transition={{ duration: 0.3 }}
-									className='relative aspect-square sm:aspect-[4/5] cursor-zoom-in'
-									onClick={() => handleOpenLightbox(selectedImageIndex)}
-								>
-									<img
-										src={allImages[selectedImageIndex]}
-										alt={`${product.name} - Image ${selectedImageIndex + 1}`}
-										className='w-full h-full object-contain p-4 sm:p-6 lg:p-8'
-									/>
-									
-									{/* Zoom Icon Overlay */}
-									<div className='absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all flex items-center justify-center'>
-										<ZoomIn 
-											size={40} 
-											className='text-white opacity-0 group-hover:opacity-100 transition-opacity' 
-											strokeWidth={1.5}
-										/>
-									</div>
-								</motion.div>
-							</AnimatePresence>
-
-							{/* Navigation Arrows - Desktop only */}
-							{allImages.length > 1 && (
-								<>
-									<button
-										onClick={handlePreviousImage}
-										className='hidden sm:flex absolute left-2 lg:left-4 top-1/2 -translate-y-1/2 
-										w-10 h-10 items-center justify-center
-										bg-white/5 backdrop-blur-md border border-white/10 hover:bg-white/10
-										text-white transition-all z-10'
-										aria-label='Previous image'
-									>
-										<ChevronLeft size={20} strokeWidth={1.5} />
-									</button>
-									<button
-										onClick={handleNextImage}
-										className='hidden sm:flex absolute right-2 lg:right-4 top-1/2 -translate-y-1/2 
-										w-10 h-10 items-center justify-center
-										bg-white/5 backdrop-blur-md border border-white/10 hover:bg-white/10
-										text-white transition-all z-10'
-										aria-label='Next image'
-									>
-										<ChevronRight size={20} strokeWidth={1.5} />
-									</button>
-
-									{/* Image Counter */}
-									<div className='absolute bottom-3 right-3 bg-black/50 backdrop-blur-sm text-white px-3 py-1 text-xs font-light tracking-wide'>
-										{selectedImageIndex + 1} / {allImages.length}
-									</div>
-								</>
-							)}
-
-							{/* Swipe indicator for mobile */}
-							{allImages.length > 1 && (
-								<div className='sm:hidden absolute bottom-3 left-1/2 -translate-x-1/2'>
-									<div className='flex items-center gap-2 text-white/40 text-[10px] uppercase tracking-widest'>
-										<div className='w-6 h-[1px] bg-white/20' />
-										<span>Swipe</span>
-										<div className='w-6 h-[1px] bg-white/20' />
-									</div>
-								</div>
-							)}
-						</div>
-
-						{/* Thumbnail Gallery - Mobile Friendly Slider */}
-						{allImages.length > 1 && (
-							<>
-								{/* Desktop: Grid View */}
-								<div className='hidden sm:grid sm:grid-cols-5 lg:grid-cols-4 gap-2 sm:gap-3'>
-									{allImages.map((image, index) => (
-										<button
-											key={index}
-											onClick={() => setSelectedImageIndex(index)}
-											className={`relative overflow-hidden border transition-all aspect-square ${
-												selectedImageIndex === index
-													? 'border-white'
-													: 'border-zinc-800/50 hover:border-zinc-700'
-											}`}
-										>
-											<img
-												src={image}
-												alt={`Thumbnail ${index + 1}`}
-												className='w-full h-full object-contain p-2'
-											/>
-											{index === 0 && (
-												<span className='absolute top-1 left-1 bg-white/10 backdrop-blur-sm text-white text-[10px] px-2 py-0.5 border border-white/20'>
-													Main
-												</span>
-											)}
-										</button>
-									))}
-								</div>
-
-								{/* Mobile: Horizontal Scroll */}
-								<div className='sm:hidden flex gap-2 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide -mx-3 px-3'>
-									{allImages.map((image, index) => (
-										<button
-											key={index}
-											onClick={() => setSelectedImageIndex(index)}
-											className={`relative overflow-hidden border transition-all aspect-square flex-shrink-0 w-20 h-20 snap-start ${
-												selectedImageIndex === index
-													? 'border-white scale-105'
-													: 'border-zinc-800/50'
-											}`}
-										>
-											<img
-												src={image}
-												alt={`Thumbnail ${index + 1}`}
-												className='w-full h-full object-contain p-1.5'
-											/>
-											{index === 0 && (
-												<span className='absolute top-0.5 left-0.5 bg-white/10 backdrop-blur-sm text-white text-[8px] px-1.5 py-0.5 border border-white/20'>
-													Main
-												</span>
-											)}
-										</button>
-									))}
-								</div>
-							</>
-						)}
-					</div>
-
-					{/* Product Details */}
-					<div className='flex flex-col justify-center space-y-6 sm:space-y-8'>
-						{/* Category */}
-						{product.category && (
-							<div>
-								<span className='text-[10px] sm:text-xs uppercase tracking-[0.2em] text-zinc-500 font-light'>
-									{product.category}
-								</span>
-							</div>
-						)}
-
-						{/* Product Name */}
-						<h1 className='text-3xl sm:text-4xl lg:text-5xl font-light text-white leading-tight tracking-tight'>
-							{product.name}
-						</h1>
-
-						{/* Out of Stock Badge - Mobile */}
-						{isOutOfStock && (
-							<div className='inline-flex items-center gap-2 bg-zinc-900/50 border border-zinc-800 px-4 py-2 w-fit'>
-								<PackageX className='w-4 h-4 text-zinc-500' strokeWidth={1.5} />
-								<span className='text-xs font-light uppercase tracking-wider text-zinc-500'>
-									Out of Stock
-								</span>
-							</div>
-						)}
-
-						{/* Price */}
-						<div>
-							<span className='text-4xl sm:text-5xl lg:text-6xl font-light text-white tracking-tight'>
-								${product.price}
-							</span>
-						</div>
-
-						{/* Description */}
-						{product.description && (
-							<div className='space-y-2'>
-								<h2 className='text-sm uppercase tracking-widest text-zinc-500 font-light'>
-									Description
-								</h2>
-								<p className='text-sm sm:text-base text-zinc-400 leading-relaxed font-light'>
-									{product.description}
-								</p>
-							</div>
-						)}
-
-						{/* Image Count Info */}
-						{allImages.length > 1 && (
-							<div className='text-zinc-500 text-xs sm:text-sm font-light'>
-								{allImages.length} images available
-							</div>
-						)}
-
-						{/* Action Buttons */}
-						<div className='flex flex-col sm:flex-row gap-3 sm:gap-4'>
-							{/* Add to Cart Button */}
-							<button
-								onClick={handleAddToCart}
-								disabled={(isInCart && user) || isOutOfStock}
-								className={`group relative flex items-center justify-center px-8 sm:px-10 py-3 sm:py-4 
-								text-sm sm:text-base font-medium uppercase tracking-wide
-								transition-all duration-300 overflow-hidden flex-1
-								${isOutOfStock
-									? 'bg-zinc-900 text-zinc-600 border border-zinc-800 cursor-not-allowed'
-									: (isInCart && user)
-										? 'bg-zinc-900 text-white border border-zinc-800 cursor-default'
-										: 'bg-white text-black hover:bg-zinc-900 hover:text-white border border-white hover:border-zinc-700'
-								}`}
-							>
-								{isOutOfStock ? (
-									<>
-										<PackageX size={20} className='mr-3' strokeWidth={1.5} />
-										<span>Out of Stock</span>
-									</>
-								) : (!isInCart || !user) ? (
-									<>
-										<div className='absolute inset-0 bg-zinc-900 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300' />
-										<ShoppingCart size={20} className='mr-3 relative z-10' strokeWidth={1.5} />
-										<span className='relative z-10'>Add to Cart</span>
-									</>
-								) : (
-									<>
-										<Check size={20} className='mr-3' strokeWidth={1.5} />
-										<span>In Cart</span>
-									</>
-								)}
-							</button>
-
-							{/* WhatsApp Button */}
-							<button
-								onClick={handleWhatsApp}
-								className='group relative flex items-center justify-center px-8 sm:px-10 py-3 sm:py-4 
-								text-sm sm:text-base font-medium uppercase tracking-wide
-								bg-zinc-900 border border-zinc-800 hover:border-green-600 hover:bg-green-600/10
-								transition-all duration-300 overflow-hidden sm:flex-shrink-0'
-								title="Chat on WhatsApp"
-							>
-								<MessageCircle size={20} className='mr-3 text-green-500' strokeWidth={1.5} />
-								<span className='text-white'>WhatsApp Order</span>
-							</button>
-						</div>
-					</div>
-				</motion.div>
-
-				{/* Lightbox Modal - Now works for all products */}
-				<AnimatePresence>
-					{isLightboxOpen && (
+					{isOutOfStock && (
 						<motion.div
-							initial={{ opacity: 0 }}
-							animate={{ opacity: 1 }}
-							exit={{ opacity: 0 }}
-							className='fixed inset-0 z-[9999] bg-black/95 backdrop-blur-sm flex items-center justify-center'
-							onClick={handleCloseLightbox}
+							initial={{ opacity: 0, y: -10 }}
+							animate={{ opacity: 1, y: 0 }}
+							className='mb-4 sm:mb-6 bg-red-50 border border-red-200 py-3 px-4 sm:px-6 rounded-lg'
 						>
-							{/* Image Counter - Top Center */}
-							{allImages.length > 1 && (
-								<div className='fixed top-4 left-1/2 -translate-x-1/2 bg-black/90 backdrop-blur-sm text-white px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-light tracking-wide z-[10002] rounded-full border border-white/20 shadow-2xl'>
-									{lightboxImageIndex + 1} / {allImages.length}
-								</div>
-							)}
-
-							{/* Helper Text and Close Button Group */}
-							<div className='fixed top-16 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 z-[10002]'>
-								<div className='text-white/60 text-xs sm:text-sm font-light tracking-wide'>
-									Click "here" to close
-								</div>
-								<button
-									onClick={(e) => {
-										e.stopPropagation();
-										handleCloseLightbox();
-									}}
-									className='text-white hover:text-zinc-400 transition-colors
-									w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center bg-black/90 backdrop-blur-md border border-white/30 hover:bg-white/10 rounded-full shadow-2xl'
-									aria-label='Close lightbox'
-								>
-									<X size={24} className='sm:hidden' strokeWidth={2} />
-									<X size={28} className='hidden sm:block' strokeWidth={2} />
-								</button>
+							<div className='flex items-center justify-center gap-2'>
+								<PackageX className='w-5 h-5 text-red-600' />
+								<span className='text-sm sm:text-base font-medium text-red-700'>
+									This product is currently out of stock
+								</span>
 							</div>
+						</motion.div>
+					)}
 
-							{/* Main Lightbox Image */}
+					<motion.div
+						initial={{ opacity: 0, y: 20 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ duration: 0.6 }}
+						className='grid lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-10'
+					>
+						<div className='space-y-3 sm:space-y-4'>
 							<div 
-								className='relative w-full h-full flex items-center justify-center px-4 sm:px-16 py-20'
-								onClick={(e) => e.stopPropagation()}
+								className='relative overflow-hidden bg-white border border-gray-200 rounded-lg group'
+								onTouchStart={handleTouchStart}
+								onTouchMove={handleTouchMove}
+								onTouchEnd={handleTouchEnd}
 							>
 								<AnimatePresence mode='wait'>
-									<motion.img
-										key={lightboxImageIndex}
-										src={allImages[lightboxImageIndex]}
-										alt={`${product.name} - Full size ${lightboxImageIndex + 1}`}
-										className='max-h-[80vh] max-w-full object-contain'
-										initial={{ opacity: 0, scale: 0.95 }}
-										animate={{ opacity: 1, scale: 1 }}
-										exit={{ opacity: 0, scale: 0.95 }}
+									<motion.div
+										key={selectedImageIndex}
+										initial={{ opacity: 0 }}
+										animate={{ opacity: 1 }}
+										exit={{ opacity: 0 }}
 										transition={{ duration: 0.3 }}
-									/>
+										className='relative aspect-square cursor-zoom-in'
+										onClick={() => handleOpenLightbox(selectedImageIndex)}
+									>
+										<img
+											src={allImages[selectedImageIndex]}
+											alt={`${product.name} - Image ${selectedImageIndex + 1}`}
+											className={`w-full h-full object-contain p-4 sm:p-6 transition-transform ${
+												isOutOfStock ? 'grayscale opacity-50' : 'group-hover:scale-105'
+											}`}
+										/>
+										
+										<div className='absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-5 transition-all flex items-center justify-center'>
+											<ZoomIn 
+												size={40} 
+												className='text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity' 
+											/>
+										</div>
+
+										{isOutOfStock && (
+											<div className='absolute inset-0 flex items-center justify-center bg-white/80'>
+												<div className='text-center'>
+													<PackageX className='w-12 h-12 text-gray-400 mx-auto mb-2' strokeWidth={1.5} />
+													<p className='text-gray-600 text-sm font-semibold'>Currently Unavailable</p>
+												</div>
+											</div>
+										)}
+									</motion.div>
 								</AnimatePresence>
 
-								{/* Navigation Arrows */}
 								{allImages.length > 1 && (
 									<>
 										<button
-											onClick={(e) => {
-												e.stopPropagation();
-												handleLightboxPrevious();
-											}}
-											className='fixed left-2 sm:left-4 top-1/2 -translate-y-1/2 
-											w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center
-											bg-black/80 backdrop-blur-md border border-white/20 hover:bg-white/10 rounded-full
-											text-white transition-all z-[10001]'
+											onClick={handlePreviousImage}
+											className='hidden sm:flex absolute left-2 lg:left-4 top-1/2 -translate-y-1/2 
+											w-10 h-10 items-center justify-center
+											bg-white/90 backdrop-blur-sm border border-gray-300 hover:bg-white
+											text-gray-700 transition-all z-10 rounded-full shadow-md'
 											aria-label='Previous image'
 										>
-											<ChevronLeft size={20} className='sm:hidden' strokeWidth={1.5} />
-											<ChevronLeft size={24} className='hidden sm:block' strokeWidth={1.5} />
+											<ChevronLeft size={20} />
 										</button>
 										<button
-											onClick={(e) => {
-												e.stopPropagation();
-												handleLightboxNext();
-											}}
-											className='fixed right-2 sm:right-4 top-1/2 -translate-y-1/2 
-											w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center
-											bg-black/80 backdrop-blur-md border border-white/20 hover:bg-white/10 rounded-full
-											text-white transition-all z-[10001]'
+											onClick={handleNextImage}
+											className='hidden sm:flex absolute right-2 lg:right-4 top-1/2 -translate-y-1/2 
+											w-10 h-10 items-center justify-center
+											bg-white/90 backdrop-blur-sm border border-gray-300 hover:bg-white
+											text-gray-700 transition-all z-10 rounded-full shadow-md'
 											aria-label='Next image'
 										>
-											<ChevronRight size={20} className='sm:hidden' strokeWidth={1.5} />
-											<ChevronRight size={24} className='hidden sm:block' strokeWidth={1.5} />
+											<ChevronRight size={20} />
 										</button>
+
+										<div className='absolute bottom-3 right-3 bg-black/70 backdrop-blur-sm text-white px-3 py-1 text-xs rounded-full'>
+											{selectedImageIndex + 1} / {allImages.length}
+										</div>
 									</>
+								)}
+
+								{allImages.length > 1 && (
+									<div className='sm:hidden absolute bottom-3 left-1/2 -translate-x-1/2'>
+										<div className='flex items-center gap-2 text-gray-600 text-[10px] uppercase tracking-wider bg-white/90 px-3 py-1 rounded-full'>
+											<div className='w-4 h-[1px] bg-gray-300' />
+											<span>Swipe</span>
+											<div className='w-4 h-[1px] bg-gray-300' />
+										</div>
+									</div>
 								)}
 							</div>
 
-							{/* Thumbnail Strip at Bottom - Mobile Friendly */}
 							{allImages.length > 1 && (
-								<div className='fixed bottom-4 left-1/2 -translate-x-1/2 flex gap-2 bg-black/80 backdrop-blur-sm p-2 sm:p-3 max-w-[90vw] overflow-x-auto z-[10001] rounded-lg snap-x snap-mandatory scrollbar-hide'>
-									{allImages.map((image, index) => (
-										<button
-											key={index}
-											onClick={(e) => {
-												e.stopPropagation();
-												setLightboxImageIndex(index);
-											}}
-											className={`flex-shrink-0 overflow-hidden border transition-all rounded snap-start ${
-												lightboxImageIndex === index
-													? 'border-white scale-110'
-													: 'border-zinc-700 hover:border-zinc-500'
-											}`}
-										>
-											<img
-												src={image}
-												alt={`Thumbnail ${index + 1}`}
-												className='w-12 h-12 sm:w-16 sm:h-16 object-cover'
-											/>
-										</button>
-									))}
+								<>
+									<div className='hidden sm:grid sm:grid-cols-5 lg:grid-cols-4 gap-2'>
+										{allImages.map((image, index) => (
+											<button
+												key={index}
+												onClick={() => setSelectedImageIndex(index)}
+												className={`relative overflow-hidden border transition-all aspect-square rounded ${
+													selectedImageIndex === index
+														? 'border-blue-600 ring-2 ring-blue-600'
+														: 'border-gray-200 hover:border-gray-300'
+												}`}
+											>
+												<img
+													src={image}
+													alt={`Thumbnail ${index + 1}`}
+													className='w-full h-full object-contain p-2 bg-white'
+												/>
+												{index === 0 && (
+													<span className='absolute top-1 left-1 bg-blue-100 text-blue-700 text-[10px] px-2 py-0.5 rounded'>
+														Main
+													</span>
+												)}
+											</button>
+										))}
+									</div>
+
+									<div className='sm:hidden flex gap-2 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide -mx-3 px-3'>
+										{allImages.map((image, index) => (
+											<button
+												key={index}
+												onClick={() => setSelectedImageIndex(index)}
+												className={`relative overflow-hidden border transition-all aspect-square flex-shrink-0 w-20 h-20 snap-start rounded ${
+													selectedImageIndex === index
+														? 'border-blue-600 ring-2 ring-blue-600'
+														: 'border-gray-200'
+												}`}
+											>
+												<img
+													src={image}
+													alt={`Thumbnail ${index + 1}`}
+													className='w-full h-full object-contain p-1.5 bg-white'
+												/>
+												{index === 0 && (
+													<span className='absolute top-0.5 left-0.5 bg-blue-100 text-blue-700 text-[8px] px-1.5 py-0.5 rounded'>
+														Main
+													</span>
+												)}
+											</button>
+										))}
+									</div>
+								</>
+							)}
+						</div>
+
+						<div className='flex flex-col space-y-4 sm:space-y-5'>
+							{product.category && (
+								<div>
+									<span className='text-xs uppercase tracking-wider text-blue-600 font-semibold'>
+										{product.category}
+									</span>
 								</div>
 							)}
+
+							<h1 className='text-2xl sm:text-3xl lg:text-4xl font-normal text-gray-900 leading-tight'>
+								{product.name}
+							</h1>
+
+							<div className='border-t border-b border-gray-200 py-4 sm:py-5'>
+								<div className='flex items-baseline gap-2 mb-2'>
+									<span className='text-xs align-super text-gray-900'>₹</span>
+									<span className={`text-3xl sm:text-4xl lg:text-5xl font-normal ${
+										isOutOfStock ? 'text-gray-400' : 'text-gray-900'
+									}`}>
+										{product.price.toLocaleString()}
+									</span>
+								</div>
+								<div className='flex items-center gap-2 flex-wrap mb-3'>
+									<span className='text-sm text-gray-600'>M.R.P:</span>
+									<span className='text-sm text-gray-600 line-through'>
+										₹{Math.round(product.price * 1.3).toLocaleString()}
+									</span>
+									<span className='text-sm text-red-700 font-semibold'>(23% off)</span>
+								</div>
+								{!isOutOfStock && (
+									<div className='inline-block bg-red-100 text-red-700 text-sm font-semibold px-3 py-1.5 rounded'>
+										Limited Time Offer - Save ₹{Math.round(product.price * 0.3).toLocaleString()}
+									</div>
+								)}
+							</div>
+
+							{!isOutOfStock ? (
+								<div className='bg-green-50 border border-green-200 rounded-lg p-4 sm:p-5'>
+									<div className='flex items-start gap-3 mb-4'>
+										<div className='flex-shrink-0 w-10 h-10 bg-green-100 rounded-full flex items-center justify-center'>
+											<Check className='w-5 h-5 text-green-700' strokeWidth={2.5} />
+										</div>
+										<div>
+											<p className='text-base font-semibold text-green-900 mb-1'>In Stock - Ready to Ship</p>
+											<p className='text-sm text-green-700'>Ships within 24 hours</p>
+										</div>
+									</div>
+									<div className='space-y-2.5 text-sm text-gray-700'>
+										<div className='flex items-center gap-2.5'>
+											<Truck className='w-4 h-4 text-green-600 flex-shrink-0' strokeWidth={2} />
+											<span>Free shipping on this product</span>
+										</div>
+										<div className='flex items-center gap-2.5'>
+											<Shield className='w-4 h-4 text-green-600 flex-shrink-0' strokeWidth={2} />
+											<span>1 Year Warranty Included</span>
+										</div>
+										<div className='flex items-center gap-2.5'>
+											<RotateCcw className='w-4 h-4 text-green-600 flex-shrink-0' strokeWidth={2} />
+											<span>7-Day Easy Returns</span>
+										</div>
+									</div>
+								</div>
+							) : (
+								<div className='bg-gray-100 border border-gray-300 rounded-lg p-4 sm:p-5'>
+									<div className='flex items-center gap-3'>
+										<PackageX className='w-5 h-5 text-gray-500' />
+										<span className='text-base font-medium text-gray-700'>Currently Out of Stock</span>
+									</div>
+								</div>
+							)}
+
+							{product.description && (
+								<div className='space-y-2 pt-2'>
+									<h2 className='text-sm font-semibold uppercase tracking-wide text-gray-700'>
+										About this item
+									</h2>
+									<p className='text-sm text-gray-700 leading-relaxed'>
+										{product.description}
+									</p>
+								</div>
+							)}
+
+							<div className='flex flex-col sm:flex-row gap-3 pt-2'>
+								<button
+									onClick={handleAddToCart}
+									disabled={(isInCart && user) || isOutOfStock}
+									className={`flex-1 flex items-center justify-center gap-2 px-6 py-3 sm:py-3.5 rounded-lg text-base font-medium transition-all
+									${isOutOfStock
+										? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+										: (isInCart && user)
+											? 'bg-gray-100 text-gray-700 border-2 border-gray-300'
+											: 'bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg active:scale-95'
+									}`}
+								>
+									{isOutOfStock ? (
+										<>
+											<PackageX className='w-5 h-5' />
+											<span>Out of Stock</span>
+										</>
+									) : (!isInCart || !user) ? (
+										<>
+											<ShoppingCart className='w-5 h-5' />
+											<span>Add to Cart</span>
+										</>
+									) : (
+										<>
+											<Check className='w-5 h-5' />
+											<span>In Cart</span>
+										</>
+									)}
+								</button>
+
+								<button
+									onClick={handleWhatsApp}
+									disabled={isOutOfStock}
+									className={`flex-shrink-0 sm:min-w-[180px] flex items-center justify-center gap-2 px-6 py-3 sm:py-3.5 rounded-lg text-base font-medium transition-all
+									${isOutOfStock
+										? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+										: 'bg-green-600 hover:bg-green-700 text-white shadow-md hover:shadow-lg active:scale-95'
+									}`}
+									title="Chat on WhatsApp"
+								>
+									<MessageCircle className='w-5 h-5' />
+									<span>WhatsApp</span>
+								</button>
+							</div>
+						</div>
+					</motion.div>
+
+					{hasConfigurations && (
+						<motion.div
+							initial={{ opacity: 0, y: 20 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ duration: 0.6, delay: 0.2 }}
+							className='mt-8 sm:mt-12'
+						>
+							<div className='bg-white border border-gray-200 rounded-lg p-6 sm:p-8'>
+								<div className='flex items-center gap-3 mb-6'>
+									<Cpu className='w-6 h-6 text-blue-600' strokeWidth={1.5} />
+									<h2 className='text-xl sm:text-2xl font-semibold text-gray-900'>
+										Technical Specifications
+									</h2>
+								</div>
+								
+								<div className='grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5'>
+									{configurationItems.map(({ key, label, icon: Icon }) => {
+										const value = product.configurations[key];
+										if (!value || value.trim() === '') return null;
+										
+										return (
+											<div 
+												key={key}
+												className='flex items-start gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all'
+											>
+												<div className='flex-shrink-0 w-10 h-10 bg-white rounded-lg flex items-center justify-center border border-gray-200'>
+													<Icon className='w-5 h-5 text-blue-600' strokeWidth={1.5} />
+												</div>
+												<div className='flex-1 min-w-0'>
+													<p className='text-xs uppercase tracking-wide text-gray-500 font-semibold mb-1'>
+														{label}
+													</p>
+													<p className='text-sm text-gray-900 font-medium break-words'>
+														{value}
+													</p>
+												</div>
+											</div>
+										);
+									})}
+								</div>
+
+								{product.configurations.additionalSpecs && product.configurations.additionalSpecs.trim() !== '' && (
+									<div className='mt-5 p-4 bg-blue-50 rounded-lg border border-blue-200'>
+										<h3 className='text-xs uppercase tracking-wide text-blue-700 font-semibold mb-2'>
+											Additional Notes
+										</h3>
+										<p className='text-sm text-gray-700 leading-relaxed whitespace-pre-line'>
+											{product.configurations.additionalSpecs}
+										</p>
+									</div>
+								)}
+							</div>
 						</motion.div>
 					)}
-				</AnimatePresence>
+				</div>
 			</div>
+
+			{/* Recommendations Section */}
+			<ProductRecommendations currentProductId={id} />
+
+			{/* Lightbox Modal */}
+			<AnimatePresence>
+				{isLightboxOpen && (
+					<motion.div
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						className='fixed inset-0 z-[9999] bg-black/95 backdrop-blur-sm flex items-center justify-center'
+						onClick={handleCloseLightbox}
+					>
+						{allImages.length > 1 && (
+							<div className='fixed top-4 left-1/2 -translate-x-1/2 bg-black/90 backdrop-blur-sm text-white px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm tracking-wide z-[10002] rounded-full border border-white/20 shadow-2xl'>
+								{lightboxImageIndex + 1} / {allImages.length}
+							</div>
+						)}
+
+						<button
+							onClick={(e) => {
+								e.stopPropagation();
+								handleCloseLightbox();
+							}}
+							className='fixed top-4 right-4 text-white hover:text-gray-300 transition-colors
+							w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center bg-black/90 backdrop-blur-md border border-white/30 hover:bg-white/10 rounded-full shadow-2xl z-[10002]'
+							aria-label='Close lightbox'
+						>
+							<X size={24} className='sm:hidden' strokeWidth={2} />
+							<X size={28} className='hidden sm:block' strokeWidth={2} />
+						</button>
+
+						<div 
+							className='relative w-full h-full flex items-center justify-center px-4 sm:px-16 py-20'
+							onClick={(e) => e.stopPropagation()}
+						>
+							<AnimatePresence mode='wait'>
+								<motion.img
+									key={lightboxImageIndex}
+									src={allImages[lightboxImageIndex]}
+									alt={`${product.name} - Full size ${lightboxImageIndex + 1}`}
+									className='max-h-[80vh] max-w-full object-contain'
+									initial={{ opacity: 0, scale: 0.95 }}
+									animate={{ opacity: 1, scale: 1 }}
+									exit={{ opacity: 0, scale: 0.95 }}
+									transition={{ duration: 0.3 }}
+								/>
+							</AnimatePresence>
+
+							{allImages.length > 1 && (
+								<>
+									<button
+										onClick={(e) => {
+											e.stopPropagation();
+											handleLightboxPrevious();
+										}}
+										className='fixed left-2 sm:left-4 top-1/2 -translate-y-1/2 
+										w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center
+										bg-white/10 backdrop-blur-md hover:bg-white/20 rounded-full
+										text-white transition-all z-[10001]'
+										aria-label='Previous image'
+									>
+										<ChevronLeft size={20} className='sm:hidden' />
+										<ChevronLeft size={24} className='hidden sm:block' />
+									</button>
+									<button
+										onClick={(e) => {
+											e.stopPropagation();
+											handleLightboxNext();
+										}}
+										className='fixed right-2 sm:right-4 top-1/2 -translate-y-1/2 
+										w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center
+										bg-white/10 backdrop-blur-md hover:bg-white/20 rounded-full
+										text-white transition-all z-[10001]'
+										aria-label='Next image'
+									>
+										<ChevronRight size={20} className='sm:hidden' />
+										<ChevronRight size={24} className='hidden sm:block' />
+									</button>
+								</>
+							)}
+						</div>
+
+						{allImages.length > 1 && (
+							<div className='fixed bottom-4 left-1/2 -translate-x-1/2 flex gap-2 bg-black/80 backdrop-blur-sm p-2 sm:p-3 max-w-[90vw] overflow-x-auto z-[10001] rounded-lg snap-x snap-mandatory scrollbar-hide'>
+								{allImages.map((image, index) => (
+									<button
+										key={index}
+										onClick={(e) => {
+											e.stopPropagation();
+											setLightboxImageIndex(index);
+										}}
+										className={`flex-shrink-0 overflow-hidden border transition-all rounded snap-start ${
+											lightboxImageIndex === index
+												? 'border-white scale-110'
+												: 'border-gray-600 hover:border-gray-400'
+										}`}
+									>
+										<img
+											src={image}
+											alt={`Thumbnail ${index + 1}`}
+											className='w-12 h-12 sm:w-16 sm:h-16 object-cover'
+										/>
+									</button>
+								))}
+							</div>
+						)}
+					</motion.div>
+				)}
+			</AnimatePresence>
 		</div>
 	);
 };

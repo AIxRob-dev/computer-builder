@@ -11,7 +11,7 @@ const CartPage = () => {
 	const { cart } = useCartStore();
 
 	return (
-		<div className='min-h-screen py-8 sm:py-12 md:py-16 lg:py-20'>
+		<div className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 py-8 sm:py-12 md:py-16 lg:py-20'>
 			<div className='mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8'>
 				{/* Page Header */}
 				<motion.div
@@ -20,11 +20,11 @@ const CartPage = () => {
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ duration: 0.6 }}
 				>
-					<h1 className='text-3xl sm:text-4xl lg:text-5xl font-light text-white tracking-tight'>
+					<h1 className='text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 tracking-tight'>
 						Shopping Cart
 					</h1>
 					{cart.length > 0 && (
-						<p className='mt-2 text-sm sm:text-base text-zinc-400 font-light'>
+						<p className='mt-2 text-sm sm:text-base text-gray-600 font-semibold'>
 							{cart.length} {cart.length === 1 ? 'item' : 'items'} in your cart
 						</p>
 					)}
@@ -94,18 +94,18 @@ const EmptyCartUI = () => (
 	>
 		{/* Icon Container with subtle glow */}
 		<div className='relative'>
-			<div className='absolute inset-0 bg-white/5 blur-2xl rounded-full' />
-			<div className='relative bg-zinc-900/50 border border-zinc-800 p-8 sm:p-10 rounded-full'>
-				<ShoppingCart className='h-16 w-16 sm:h-20 sm:w-20 text-zinc-500' strokeWidth={1.5} />
+			<div className='absolute inset-0 bg-blue-500/20 blur-2xl rounded-full' />
+			<div className='relative bg-white border-2 border-blue-100 p-8 sm:p-10 rounded-full shadow-xl'>
+				<ShoppingCart className='h-16 w-16 sm:h-20 sm:w-20 text-blue-600' strokeWidth={2} />
 			</div>
 		</div>
 
 		{/* Text Content */}
 		<div className='text-center space-y-3 px-4'>
-			<h3 className='text-2xl sm:text-3xl font-light text-white tracking-tight'>
+			<h3 className='text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight'>
 				Your Cart is Empty
 			</h3>
-			<p className='text-sm sm:text-base text-zinc-400 font-light max-w-md'>
+			<p className='text-sm sm:text-base text-gray-600 font-semibold max-w-md'>
 				Looks like you haven't added anything to your cart yet. Start exploring our collection.
 			</p>
 		</div>
@@ -114,18 +114,17 @@ const EmptyCartUI = () => (
 		<Link
 			to='/'
 			className='group relative inline-flex items-center justify-center px-8 py-3 sm:px-10 sm:py-4 
-			bg-white text-black text-sm font-medium uppercase tracking-wide
-			hover:bg-zinc-900 hover:text-white border border-white hover:border-zinc-700
-			transition-all duration-300 overflow-hidden mt-4'
+			bg-blue-600 text-white text-sm font-bold uppercase tracking-wide rounded-lg
+			hover:bg-blue-700 shadow-lg hover:shadow-xl
+			transition-all duration-300 mt-4'
 		>
-			<div className='absolute inset-0 bg-zinc-900 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300' />
 			<span className='relative z-10'>Start Shopping</span>
-			<ArrowRight className='ml-2 h-4 w-4 relative z-10 group-hover:translate-x-1 transition-transform' strokeWidth={1.5} />
+			<ArrowRight className='ml-2 h-4 w-4 relative z-10 group-hover:translate-x-1 transition-transform' strokeWidth={2} />
 		</Link>
 
 		{/* Decorative element */}
-		<div className='mt-8 pt-8 border-t border-zinc-800/50 w-full max-w-md'>
-			<p className='text-center text-xs text-zinc-600 font-light uppercase tracking-widest'>
+		<div className='mt-8 pt-8 border-t-2 border-blue-100 w-full max-w-md'>
+			<p className='text-center text-xs text-gray-500 font-bold uppercase tracking-widest'>
 				Free Shipping on Orders Over $50
 			</p>
 		</div>
