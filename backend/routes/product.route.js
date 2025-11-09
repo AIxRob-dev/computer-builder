@@ -7,59 +7,68 @@ import {
 	getFeaturedProducts,
 	getBestSellerProducts,
 	getProductsByCategory,
-	getProductsByMultipleCategories, // NEW IMPORT
+	getProductsByMultipleCategories,
 	getRecommendedProducts,
 	toggleFeaturedProduct,
 	toggleBestSellerProduct,
 	toggleStockStatus,
 	updateProduct,
-	clearCache, // Optional: for cache management
+	clearCache,
 } from "../controllers/product.controller.js";
 import { adminRoute, protectRoute } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
-// Get all products (admin only)
-router.get("/", protectRoute, adminRoute, getAllProducts);
+// ==========================================
+// PUBLIC ROUTES (no auth required)
+// ==========================================
 
-// Get featured products (public route)
+// Get featured products
 router.get("/featured", getFeaturedProducts);
 
-// Get best seller products (public route)
+// Get best seller products
 router.get("/bestseller", getBestSellerProducts);
 
-// NEW: Get products by multiple categories (public route)
-// Usage: /api/products/categories/filter?categories=gaming,laptop,desktop
+// Get products by multiple categories
 router.get("/categories/filter", getProductsByMultipleCategories);
 
-// Get products by single category (public route)
-router.get("/category/:category", getProductsByCategory);
-
-// Get recommended products (public route)
+// Get recommended products
 router.get("/recommendations", getRecommendedProducts);
 
-// Get single product by ID (public route)
-router.get("/:id", getProductById);
+// Get products by single category
+router.get("/category/:category", getProductsByCategory);
+
+// ==========================================
+// ADMIN ROUTES (auth + admin required)
+// ==========================================
+
+// Get all products (admin only)
+router.get("/", protectRoute, adminRoute, getAllProducts);
 
 // Create product (admin only)
 router.post("/", protectRoute, adminRoute, createProduct);
 
-// Update product (admin only)
-router.put("/:id", protectRoute, adminRoute, updateProduct);
-
-// Toggle featured status (admin only)
-router.patch("/:id", protectRoute, adminRoute, toggleFeaturedProduct);
-
+// ⭐ CRITICAL: Specific PATCH routes MUST come BEFORE "/:id" wildcard
 // Toggle best seller status (admin only)
 router.patch("/bestseller/:id", protectRoute, adminRoute, toggleBestSellerProduct);
 
 // Toggle stock status (admin only)
 router.patch("/stock/:id", protectRoute, adminRoute, toggleStockStatus);
 
+// Toggle featured status (admin only) - MOVED AFTER specific routes
+router.patch("/:id", protectRoute, adminRoute, toggleFeaturedProduct);
+
+// Update product (admin only)
+router.put("/:id", protectRoute, adminRoute, updateProduct);
+
 // Delete product (admin only)
 router.delete("/:id", protectRoute, adminRoute, deleteProduct);
 
-// Optional: Clear cache endpoint (admin only)
-// router.post("/cache/clear", protectRoute, adminRoute, clearCache);
+// ==========================================
+// Must be last: Dynamic ID routes
+// ==========================================
+
+// Get single product by ID (public route) - MUST BE LAST
+router.get("/:id", getProductById);
 
 export default router;
