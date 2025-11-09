@@ -32,7 +32,8 @@ const allowedOrigins = process.env.NODE_ENV === "production"
 
 console.log("Allowed CORS origins:", allowedOrigins);
 
-app.use(cors({
+// ⭐ Updated CORS configuration
+const corsOptions = {
   origin: function(origin, callback) {
     // Allow requests with no origin (mobile apps, Postman, etc.)
     if (!origin) return callback(null, true);
@@ -54,16 +55,23 @@ app.use(cors({
     return callback(null, true);
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'], // ⭐ PATCH included
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204
+};
+
+app.use(cors(corsOptions));
+
+// ⭐ Handle preflight requests explicitly
+app.options('*', cors(corsOptions));
 
 app.use(express.json({ limit: "10mb" }));
 app.use(cookieParser());
 
 // Request logging middleware
 app.use((req, res, next) => {
-console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
   next();
 });
 
@@ -82,9 +90,6 @@ app.get("/api/health", (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
-
-// REMOVED: Frontend is now hosted separately on Vercel
-// No need to serve static files from backend
 
 // Error handling middleware
 app.use((err, req, res, next) => {
