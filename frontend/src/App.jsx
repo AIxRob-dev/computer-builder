@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 
@@ -21,11 +21,75 @@ import LoadingSpinner from "./components/LoadingSpinner";
 import { useUserStore } from "./stores/useUserStore";
 import { useCartStore } from "./stores/useCartStore";
 
+// ⭐ CRITICAL: Utility to force unlock scroll
+const forceUnlockScroll = () => {
+    // Remove any inline styles that might lock scroll
+    document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.width = '';
+    document.documentElement.style.overflow = '';
+    
+    // Remove common scroll-lock classes
+    document.body.classList.remove('overflow-hidden', 'no-scroll', 'modal-open');
+    document.documentElement.classList.remove('overflow-hidden', 'no-scroll');
+    
+    console.log("🔓 Scroll forcefully unlocked");
+};
+
+// ⭐ Make it globally available for debugging
+if (typeof window !== 'undefined') {
+    window.forceUnlockScroll = forceUnlockScroll;
+}
+
 function App() {
     const { user, checkAuth, checkingAuth } = useUserStore();
     const { getCartItems } = useCartStore();
+    const location = useLocation();
     
-    // ⭐ CRITICAL: Check authentication on mount
+    // ⭐ CRITICAL: Force unlock scroll on every route change
+    useEffect(() => {
+        console.log("🔄 Route changed:", location.pathname);
+        forceUnlockScroll();
+    }, [location.pathname]);
+
+    // ⭐ CRITICAL: Force unlock scroll on mount and unmount
+    useEffect(() => {
+        console.log("🚀 App mounted - unlocking scroll");
+        forceUnlockScroll();
+        
+        return () => {
+            console.log("👋 App unmounting - unlocking scroll");
+            forceUnlockScroll();
+        };
+    }, []);
+
+    // ⭐ CRITICAL: Force unlock scroll when auth state changes
+    useEffect(() => {
+        if (!checkingAuth) {
+            console.log("✅ Auth check complete - ensuring scroll is unlocked");
+            // Small delay to ensure any loading states have cleaned up
+            setTimeout(forceUnlockScroll, 100);
+        }
+    }, [checkingAuth]);
+
+    // ⭐ CRITICAL: Periodic scroll check (safety net)
+    useEffect(() => {
+        const intervalId = setInterval(() => {
+            // Only unlock if body has overflow hidden AND no modals/dialogs are open
+            const hasModal = document.querySelector('[role="dialog"], .modal, [data-modal="true"]');
+            const isHidden = window.getComputedStyle(document.body).overflow === 'hidden';
+            
+            if (isHidden && !hasModal) {
+                console.warn("⚠️ Detected stuck scroll lock - fixing");
+                forceUnlockScroll();
+            }
+        }, 2000); // Check every 2 seconds
+
+        return () => clearInterval(intervalId);
+    }, []);
+
+    // Check authentication on mount
     useEffect(() => {
         console.log("🚀 App mounted - initiating auth check");
         checkAuth();
@@ -42,15 +106,7 @@ function App() {
         getCartItems();
     }, [getCartItems, user]);
 
-    // Cleanup: Ensure scroll is never locked
-    useEffect(() => {
-        return () => {
-            document.body.style.overflow = 'auto';
-            document.documentElement.style.overflow = 'auto';
-        };
-    }, []);
-
-    // ⭐ Enhanced debug logging for auth state
+    // Enhanced debug logging for auth state
     useEffect(() => {
         console.log("🔍 Auth State Changed:", {
             checkingAuth,
@@ -62,7 +118,6 @@ function App() {
     }, [checkingAuth, user]);
 
     // ⭐ CRITICAL: Show loading spinner while checking auth
-    // This prevents flickering and ensures proper auth flow
     if (checkingAuth) {
         console.log("⏳ Checking authentication...");
         return <LoadingSpinner />;
