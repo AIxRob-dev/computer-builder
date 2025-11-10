@@ -18,17 +18,31 @@ const storeRefreshToken = async (userId, refreshToken) => {
 	await redis.set(`refresh_token:${userId}`, refreshToken, "EX", 7 * 24 * 60 * 60); // 7days
 };
 
+// ⭐ FIXED: Enhanced cookie configuration for better cross-device compatibility
 const setCookies = (res, accessToken, refreshToken) => {
+	const isProduction = process.env.NODE_ENV === "production";
+	
+	// Common cookie options
+	const cookieOptions = {
+		httpOnly: true,
+		secure: isProduction, // Only secure in production (requires HTTPS)
+		sameSite: isProduction ? "none" : "lax",
+		path: "/", // Explicit path
+	};
+
+	// ⭐ IMPORTANT: Add domain only in production if using custom domain
+	// Uncomment and set if you're using a custom domain
+	// if (isProduction) {
+	//   cookieOptions.domain = ".computerbuilder.in"; // Note the dot prefix
+	// }
+
 	res.cookie("accessToken", accessToken, {
-		httpOnly: true, // prevent XSS attacks, cross site scripting attack
-		secure: process.env.NODE_ENV === "production",
-		sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // allow cross-domain cookies in production
+		...cookieOptions,
 		maxAge: 15 * 60 * 1000, // 15 minutes
 	});
+	
 	res.cookie("refreshToken", refreshToken, {
-		httpOnly: true, // prevent XSS attacks, cross site scripting attack
-		secure: process.env.NODE_ENV === "production",
-		sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // allow cross-domain cookies in production
+		...cookieOptions,
 		maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 	});
 };
@@ -94,8 +108,17 @@ export const logout = async (req, res) => {
 			await redis.del(`refresh_token:${decoded.userId}`);
 		}
 
-		res.clearCookie("accessToken");
-		res.clearCookie("refreshToken");
+		// ⭐ FIXED: Enhanced cookie clearing
+		const isProduction = process.env.NODE_ENV === "production";
+		const clearOptions = {
+			httpOnly: true,
+			secure: isProduction,
+			sameSite: isProduction ? "none" : "lax",
+			path: "/",
+		};
+
+		res.clearCookie("accessToken", clearOptions);
+		res.clearCookie("refreshToken", clearOptions);
 		res.json({ message: "Logged out successfully" });
 	} catch (error) {
 		console.log("Error in logout controller", error.message);
@@ -121,10 +144,13 @@ export const refreshToken = async (req, res) => {
 
 		const accessToken = jwt.sign({ userId: decoded.userId }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "15m" });
 
+		// ⭐ FIXED: Use consistent cookie options
+		const isProduction = process.env.NODE_ENV === "production";
 		res.cookie("accessToken", accessToken, {
 			httpOnly: true,
-			secure: process.env.NODE_ENV === "production",
-			sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // allow cross-domain cookies in production
+			secure: isProduction,
+			sameSite: isProduction ? "none" : "lax",
+			path: "/",
 			maxAge: 15 * 60 * 1000,
 		});
 
