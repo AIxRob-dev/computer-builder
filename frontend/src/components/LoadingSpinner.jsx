@@ -1,223 +1,167 @@
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { Loader } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Loader, AlertCircle, RefreshCw } from "lucide-react";
+import { useUserStore } from "../stores/useUserStore";
 
 const LoadingSpinner = () => {
-  const [progress, setProgress] = useState(0);
-  const [loadingText, setLoadingText] = useState("Initializing");
-
-  const loadingStages = [
-    { text: "Initializing", progress: 0 },
-    { text: "Loading resources", progress: 25 },
-    { text: "Establishing connection", progress: 50 },
-    { text: "Syncing data", progress: 75 },
-    { text: "Almost ready", progress: 90 },
-    { text: "Complete", progress: 100 }
-  ];
+  const { checkAuth } = useUserStore();
+  const [showWarning, setShowWarning] = useState(false);
+  const [timeElapsed, setTimeElapsed] = useState(0);
+  const [showDebug, setShowDebug] = useState(false);
 
   useEffect(() => {
-    let currentStage = 0;
-    const interval = setInterval(() => {
-      if (currentStage < loadingStages.length) {
-        setLoadingText(loadingStages[currentStage].text);
-        setProgress(loadingStages[currentStage].progress);
-        currentStage++;
-      } else {
-        clearInterval(interval);
-      }
-    }, 800);
+    // Show warning if loading takes more than 8 seconds
+    const warningTimer = setTimeout(() => {
+      console.warn("⚠️ Auth check taking longer than expected");
+      setShowWarning(true);
+    }, 8000);
 
-    return () => clearInterval(interval);
+    // Auto-skip if loading takes more than 15 seconds
+    const autoSkipTimer = setTimeout(() => {
+      console.error("❌ Auth check timeout - forcing skip");
+      handleForceSkip();
+    }, 15000);
+
+    // Track time elapsed
+    const interval = setInterval(() => {
+      setTimeElapsed(prev => prev + 1);
+    }, 1000);
+
+    return () => {
+      clearTimeout(warningTimer);
+      clearTimeout(autoSkipTimer);
+      clearInterval(interval);
+    };
   }, []);
 
+  const handleRetry = () => {
+    console.log("🔄 Manual retry triggered");
+    setShowWarning(false);
+    setTimeElapsed(0);
+    checkAuth();
+  };
+
+  const handleForceSkip = () => {
+    console.log("⏭️ Forcing skip - setting checkingAuth to false");
+    // Force authentication check to complete
+    useUserStore.setState({ checkingAuth: false, user: null });
+  };
+
+  const handleGoToLogin = () => {
+    console.log("➡️ Redirecting to login");
+    handleForceSkip();
+    // Small delay to ensure state updates
+    setTimeout(() => {
+      window.location.href = '/login';
+    }, 100);
+  };
+
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-zinc-950 via-black to-zinc-900 relative overflow-hidden">
-      {/* Animated background grid */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
-                           linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)`,
-          backgroundSize: '50px 50px'
-        }} />
+    <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-black to-zinc-900 flex items-center justify-center px-4 relative">
+      {/* Subtle background effects */}
+      <div className='absolute inset-0 overflow-hidden pointer-events-none'>
+        <div 
+          className='absolute inset-0 opacity-[0.015]' 
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+          }}
+        />
+        <div className='absolute top-0 left-1/4 w-96 h-96 bg-white/[0.02] rounded-full blur-3xl' />
       </div>
 
-      {/* Main loading container */}
-      <motion.div 
-        className="relative z-10 flex flex-col items-center"
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
-      >
-        {/* Outer glow ring */}
-        <div className="relative mb-12">
-          <div className="absolute inset-0 blur-2xl bg-zinc-700/20 rounded-full" />
-          
-          {/* Multiple rotating rings */}
-          <div className="relative w-32 h-32">
-            {/* Outer ring */}
-            <svg className="w-32 h-32 absolute inset-0" viewBox="0 0 100 100">
-              <circle
-                cx="50"
-                cy="50"
-                r="45"
-                fill="none"
-                stroke="rgba(63, 63, 70, 0.3)"
-                strokeWidth="1"
-              />
-            </svg>
-            
-            {/* Animated ring 1 */}
-            <motion.svg 
-              className="w-32 h-32 absolute inset-0"
-              animate={{ rotate: 360 }}
-              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-              viewBox="0 0 100 100"
-            >
-              <circle
-                cx="50"
-                cy="50"
-                r="45"
-                fill="none"
-                stroke="url(#gradient1)"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeDasharray="70 213"
-              />
-              <defs>
-                <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#ffffff" stopOpacity="0.8" />
-                  <stop offset="100%" stopColor="#71717a" stopOpacity="0.2" />
-                </linearGradient>
-              </defs>
-            </motion.svg>
-
-            {/* Animated ring 2 */}
-            <motion.svg 
-              className="w-32 h-32 absolute inset-0"
-              animate={{ rotate: -360 }}
-              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-              viewBox="0 0 100 100"
-            >
-              <circle
-                cx="50"
-                cy="50"
-                r="38"
-                fill="none"
-                stroke="url(#gradient2)"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeDasharray="50 188"
-              />
-              <defs>
-                <linearGradient id="gradient2" x1="100%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#a1a1aa" stopOpacity="0.6" />
-                  <stop offset="100%" stopColor="#52525b" stopOpacity="0.1" />
-                </linearGradient>
-              </defs>
-            </motion.svg>
-
-            {/* Center icon */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-              >
-                <Loader className="w-8 h-8 text-white" strokeWidth={1.5} />
-              </motion.div>
+      <div className="max-w-md w-full relative z-10">
+        {/* Main Loading Card */}
+        <div className="bg-zinc-900/90 backdrop-blur-xl border border-zinc-800 rounded-2xl shadow-2xl p-8 text-center">
+          <div className="flex justify-center mb-6">
+            <div className="relative">
+              <Loader className="h-16 w-16 text-white animate-spin" strokeWidth={1.5} />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="h-8 w-8 bg-white/10 rounded-full animate-pulse"></div>
+              </div>
             </div>
-
-            {/* Pulsing dots */}
-            {[0, 120, 240].map((rotation, index) => (
-              <motion.div
-                key={index}
-                className="absolute w-2 h-2 bg-white rounded-full"
-                style={{
-                  top: '50%',
-                  left: '50%',
-                  transformOrigin: '0 0'
-                }}
-                animate={{
-                  x: [0, 60 * Math.cos((rotation * Math.PI) / 180)],
-                  y: [0, 60 * Math.sin((rotation * Math.PI) / 180)],
-                  opacity: [0, 1, 0],
-                  scale: [0, 1, 0]
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  delay: index * 0.3,
-                  ease: "easeInOut"
-                }}
-              />
-            ))}
           </div>
-        </div>
 
-        {/* Loading text */}
-        <motion.div 
-          className="text-center mb-8"
-          key={loadingText}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.3 }}
-        >
-          <h2 className="text-xl font-light text-white tracking-wide mb-1">
-            {loadingText}
+          <h2 className="text-2xl font-light text-white mb-2 tracking-tight">
+            Initializing Session
           </h2>
-          <p className="text-xs text-zinc-500 uppercase tracking-widest font-light">
-            Please wait
+          
+          <p className="text-zinc-400 text-sm mb-4 font-light">
+            Please wait while we verify your account
           </p>
-        </motion.div>
 
-        {/* Progress bar container */}
-        <div className="w-80 max-w-md">
-          {/* Progress bar background */}
-          <div className="relative h-1 bg-zinc-800/50 border border-zinc-800 overflow-hidden">
-            {/* Animated shimmer effect */}
-            <motion.div
-              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
-              animate={{ x: ['-100%', '200%'] }}
-              transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-            />
-            
-            {/* Progress fill */}
-            <motion.div
-              className="absolute inset-y-0 left-0 bg-gradient-to-r from-zinc-400 via-white to-zinc-300"
-              initial={{ width: 0 }}
-              animate={{ width: `${progress}%` }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
-            >
-              {/* Glow effect on progress bar */}
-              <div className="absolute inset-0 bg-white/20 blur-sm" />
-            </motion.div>
-          </div>
+          {/* Time Indicator */}
+          {timeElapsed > 0 && (
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-zinc-800/50 rounded-full mb-4">
+              <div className="h-1.5 w-1.5 bg-blue-500 rounded-full animate-pulse"></div>
+              <p className="text-xs text-zinc-400 font-light">
+                {timeElapsed}s
+              </p>
+            </div>
+          )}
 
-          {/* Progress percentage */}
-          <div className="flex justify-between items-center mt-3">
-            <span className="text-xs text-zinc-600 font-light tracking-wide">
-              Loading
-            </span>
-            <motion.span 
-              className="text-xs text-zinc-400 font-light tabular-nums"
-              key={progress}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+          {/* Warning Message */}
+          {showWarning && (
+            <div className="mt-6 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-xl">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 text-yellow-500 flex-shrink-0 mt-0.5" strokeWidth={1.5} />
+                <div className="text-left flex-1">
+                  <p className="text-sm font-medium text-yellow-500 mb-2">
+                    Taking Longer Than Expected
+                  </p>
+                  <p className="text-xs text-yellow-500/80 mb-3 font-light leading-relaxed">
+                    This might be due to network issues or cookie restrictions. Try refreshing or proceed to login.
+                  </p>
+                  
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={handleRetry}
+                      className="flex items-center gap-2 px-4 py-2 bg-white text-black text-xs font-medium rounded-lg hover:bg-zinc-100 transition-all duration-200 shadow-lg shadow-white/10"
+                    >
+                      <RefreshCw className="h-3.5 w-3.5" strokeWidth={2} />
+                      Retry
+                    </button>
+                    
+                    <button
+                      onClick={handleGoToLogin}
+                      className="px-4 py-2 bg-zinc-800 text-white text-xs font-medium rounded-lg hover:bg-zinc-700 transition-all duration-200 border border-zinc-700"
+                    >
+                      Go to Login
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Debug Toggle - Development Only */}
+          {import.meta.env.MODE === "development" && (
+            <button
+              onClick={() => setShowDebug(!showDebug)}
+              className="mt-4 text-xs text-zinc-500 hover:text-zinc-400 transition-colors"
             >
-              {progress}%
-            </motion.span>
-          </div>
+              {showDebug ? "Hide" : "Show"} Debug Info
+            </button>
+          )}
+
+          {/* Debug Info - Development Only */}
+          {import.meta.env.MODE === "development" && showDebug && (
+            <div className="mt-4 p-3 bg-zinc-800/50 rounded-lg text-left border border-zinc-700">
+              <p className="text-xs font-mono text-zinc-400 space-y-1">
+                <span className="text-zinc-500">Time:</span> {timeElapsed}s<br />
+                <span className="text-zinc-500">Cookies:</span> {document.cookie ? "Present" : "None"}<br />
+                <span className="text-zinc-500">Has Access Token:</span> {document.cookie.includes("accessToken") ? "✅" : "❌"}<br />
+                <span className="text-zinc-500">Has Refresh Token:</span> {document.cookie.includes("refreshToken") ? "✅" : "❌"}<br />
+                <span className="text-zinc-500">Browser:</span> {navigator.userAgent.includes("Mobile") ? "Mobile" : "Desktop"}<br />
+                <span className="text-zinc-500">Cookies Enabled:</span> {navigator.cookieEnabled ? "✅" : "❌"}
+              </p>
+            </div>
+          )}
         </div>
 
-        {/* Subtle hint text */}
-        <motion.p 
-          className="text-xs text-zinc-700 font-light mt-12 tracking-wide"
-          animate={{ opacity: [0.3, 0.6, 0.3] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        >
-          Preparing your experience
-        </motion.p>
-      </motion.div>
+        {/* Help Text */}
+        <p className="mt-4 text-center text-xs text-zinc-500 font-light">
+          Having trouble? Try clearing your browser cache or using a different browser
+        </p>
+      </div>
     </div>
   );
 };
