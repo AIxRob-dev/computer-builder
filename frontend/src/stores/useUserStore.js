@@ -5,12 +5,12 @@ import { toast } from "react-hot-toast";
 // Custom toast styles matching your theme
 const toastStyles = {
 	style: {
-		background: '#18181b', // zinc-900
+		background: '#18181b',
 		color: '#fff',
-		border: '1px solid #27272a', // zinc-800
+		border: '1px solid #27272a',
 		padding: '16px',
 		fontSize: '14px',
-		fontWeight: '300', // font-light
+		fontWeight: '300',
 		letterSpacing: '0.025em',
 	},
 	success: {
@@ -29,7 +29,7 @@ const toastStyles = {
 	},
 	loading: {
 		iconTheme: {
-			primary: '#71717a', // zinc-500
+			primary: '#71717a',
 			secondary: '#18181b',
 		},
 	},
@@ -39,39 +39,55 @@ export const useUserStore = create((set, get) => ({
 	user: null,
 	loading: false,
 	checkingAuth: true,
+	error: null,
 
 	signup: async ({ name, email, password, confirmPassword }) => {
-		set({ loading: true });
+		set({ loading: true, error: null });
 
 		if (password !== confirmPassword) {
-			set({ loading: false });
+			set({ loading: false, error: "Passwords do not match" });
 			return toast.error("Passwords do not match", {
 				...toastStyles,
 				...toastStyles.error,
 			});
 		}
 
-		// Show loading toast
 		const loadingToast = toast.loading("Creating your account...", {
 			...toastStyles,
 			...toastStyles.loading,
 		});
 
 		try {
+			console.log("📝 Attempting signup...");
 			const res = await axios.post("/auth/signup", { name, email, password });
-			set({ user: res.data, loading: false });
 			
-			// Dismiss loading and show success
+			console.log("✅ Signup successful:", res.data);
+			set({ user: res.data, loading: false, error: null });
+			
 			toast.dismiss(loadingToast);
 			toast.success(`Welcome aboard, ${res.data.name || 'there'}! 🎉`, {
 				...toastStyles,
 				...toastStyles.success,
 			});
+
+			// ⭐ CRITICAL: Verify cookies were set after signup
+			setTimeout(() => {
+				console.log("🍪 Cookies after signup:", document.cookie);
+				if (!document.cookie.includes("accessToken")) {
+					console.error("⚠️ WARNING: No cookies set after signup!");
+					toast.error("Session setup incomplete. Please try logging in.", {
+						...toastStyles,
+						...toastStyles.error,
+					});
+				}
+			}, 500);
+
 		} catch (error) {
-			set({ loading: false });
-			toast.dismiss(loadingToast);
-			
+			console.error("❌ Signup error:", error.response?.data || error.message);
 			const errorMessage = error.response?.data?.message || "Account creation failed. Please try again.";
+			
+			set({ loading: false, error: errorMessage });
+			toast.dismiss(loadingToast);
 			toast.error(errorMessage, {
 				...toastStyles,
 				...toastStyles.error,
@@ -80,29 +96,56 @@ export const useUserStore = create((set, get) => ({
 	},
 
 	login: async (email, password) => {
-		set({ loading: true });
+		set({ loading: true, error: null });
 
-		// Show loading toast
 		const loadingToast = toast.loading("Signing you in...", {
 			...toastStyles,
 			...toastStyles.loading,
 		});
 
 		try {
+			console.log("🔐 Attempting login for:", email);
 			const res = await axios.post("/auth/login", { email, password });
-			set({ user: res.data, loading: false });
 			
-			// Dismiss loading and show success
+			console.log("✅ Login successful:", res.data);
+			console.log("🍪 Response headers:", res.headers);
+			
+			set({ user: res.data, loading: false, error: null });
+			
 			toast.dismiss(loadingToast);
 			toast.success(`Welcome back, ${res.data.name || 'there'}! ✨`, {
 				...toastStyles,
 				...toastStyles.success,
 			});
+
+			// ⭐ CRITICAL: Verify cookies were set after login
+			setTimeout(() => {
+				console.log("🍪 Cookies after login:", document.cookie);
+				console.log("👤 User state:", get().user);
+				
+				if (!document.cookie.includes("accessToken")) {
+					console.error("⚠️ CRITICAL: No cookies set after login!");
+					console.error("Browser info:", {
+						userAgent: navigator.userAgent,
+						cookiesEnabled: navigator.cookieEnabled,
+						platform: navigator.platform
+					});
+					
+					// Show warning but don't block - user is technically logged in
+					toast("⚠️ Session may not persist. Clear browser cache if issues persist.", {
+						...toastStyles,
+						icon: "⚠️",
+						duration: 5000,
+					});
+				}
+			}, 500);
+
 		} catch (error) {
-			set({ loading: false });
-			toast.dismiss(loadingToast);
-			
+			console.error("❌ Login error:", error.response?.data || error.message);
 			const errorMessage = error.response?.data?.message || "Login failed. Please check your credentials.";
+			
+			set({ loading: false, error: errorMessage });
+			toast.dismiss(loadingToast);
 			toast.error(errorMessage, {
 				...toastStyles,
 				...toastStyles.error,
@@ -111,7 +154,6 @@ export const useUserStore = create((set, get) => ({
 	},
 
 	logout: async () => {
-		// Show loading toast
 		const loadingToast = toast.loading("Signing you out...", {
 			...toastStyles,
 			...toastStyles.loading,
@@ -119,100 +161,73 @@ export const useUserStore = create((set, get) => ({
 
 		try {
 			await axios.post("/auth/logout");
-			set({ user: null });
+			set({ user: null, error: null });
 			
-			// Dismiss loading and show success
 			toast.dismiss(loadingToast);
 			toast.success("You've been signed out successfully. See you soon! 👋", {
 				...toastStyles,
 				...toastStyles.success,
 			});
 		} catch (error) {
-			toast.dismiss(loadingToast);
+			console.error("❌ Logout error:", error);
+			// Even if logout fails, clear local state
+			set({ user: null, error: null });
 			
-			const errorMessage = error.response?.data?.message || "Logout failed. Please try again.";
-			toast.error(errorMessage, {
+			toast.dismiss(loadingToast);
+			toast.success("Signed out successfully", {
 				...toastStyles,
-				...toastStyles.error,
+				...toastStyles.success,
 			});
 		}
 	},
 
 	checkAuth: async () => {
 		set({ checkingAuth: true });
+		
 		try {
+			console.log("🔍 Checking authentication...");
+			console.log("🍪 Current cookies:", document.cookie);
+			
 			const response = await axios.get("/auth/profile");
-			set({ user: response.data, checkingAuth: false });
+			
+			console.log("✅ Auth check successful:", response.data);
+			set({ user: response.data, checkingAuth: false, error: null });
+			
 		} catch (error) {
-			console.log(error.message);
+			console.error("❌ Auth check failed:", error.response?.status, error.message);
+			
+			// ⭐ CRITICAL: Always set checkingAuth to false, even on error
 			set({ checkingAuth: false, user: null });
+			
+			// Only show error if it's not a 401 (which is expected for non-authenticated users)
+			if (error.response?.status !== 401) {
+				console.error("Unexpected auth check error:", error);
+			}
 		}
 	},
 
 	refreshToken: async () => {
-		// Prevent multiple simultaneous refresh attempts
 		if (get().checkingAuth) return;
 
 		set({ checkingAuth: true });
+		
 		try {
+			console.log("🔄 Refreshing token...");
 			const response = await axios.post("/auth/refresh-token");
+			
+			console.log("✅ Token refreshed successfully");
 			set({ checkingAuth: false });
 			return response.data;
+			
 		} catch (error) {
+			console.error("❌ Token refresh failed:", error);
 			set({ user: null, checkingAuth: false });
 			throw error;
 		}
 	},
+
+	// ⭐ NEW: Clear error
+	clearError: () => set({ error: null }),
 }));
 
-// Axios interceptor for token refresh
-let refreshPromise = null;
-
-axios.interceptors.response.use(
-	(response) => response,
-	async (error) => {
-		const originalRequest = error.config;
-		if (error.response?.status === 401 && !originalRequest._retry) {
-			originalRequest._retry = true;
-
-			try {
-				// If a refresh is already in progress, wait for it to complete
-				if (refreshPromise) {
-					await refreshPromise;
-					return axios(originalRequest);
-				}
-
-				// Start a new refresh process
-				refreshPromise = useUserStore.getState().refreshToken();
-				await refreshPromise;
-				refreshPromise = null;
-
-				return axios(originalRequest);
-			} catch (refreshError) {
-				// If refresh fails, redirect to login or handle as needed
-				useUserStore.getState().logout();
-				
-				// Show session expired toast
-				toast.error("Your session has expired. Please sign in again.", {
-					style: {
-						background: '#18181b',
-						color: '#fff',
-						border: '1px solid #27272a',
-						padding: '16px',
-						fontSize: '14px',
-						fontWeight: '300',
-						letterSpacing: '0.025em',
-					},
-					iconTheme: {
-						primary: '#fff',
-						secondary: '#18181b',
-					},
-					duration: 4000,
-				});
-				
-				return Promise.reject(refreshError);
-			}
-		}
-		return Promise.reject(error);
-	}
-);
+// ⭐ REMOVED: Duplicate axios interceptor (keeping only the one in lib/axios.js)
