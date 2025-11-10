@@ -87,11 +87,12 @@ axiosInstance.interceptors.response.use(
 
     // ⭐ Handle 401 Unauthorized - Attempt token refresh
     if (error.response?.status === 401 && !originalRequest._retry) {
-      // Don't retry login/signup/refresh-token endpoints
+      // Don't retry login/signup/refresh-token/profile endpoints
       if (
         originalRequest.url?.includes('/auth/login') ||
         originalRequest.url?.includes('/auth/signup') ||
-        originalRequest.url?.includes('/auth/refresh-token')
+        originalRequest.url?.includes('/auth/refresh-token') ||
+        originalRequest.url?.includes('/auth/profile')
       ) {
         console.log("⏭️ Skipping refresh for auth endpoint");
         return Promise.reject(error);
