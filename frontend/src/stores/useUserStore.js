@@ -222,13 +222,20 @@ export const useUserStore = create((set, get) => ({
 		try {
 			console.log("🔍 Checking authentication...");
 			
-			// ⭐ Check if we have tokens in localStorage
+			// ⭐ CRITICAL: First check if we have tokens
 			const tokens = getTokensFromLocalStorage();
-			if (tokens) {
-				console.log("🔐 Found tokens in localStorage");
+			
+			// If no tokens, skip API call - user is not logged in
+			if (!tokens || !tokens.accessToken) {
+				console.log("⚠️ No tokens found - user not authenticated");
+				set({ checkingAuth: false, user: null });
+				clearLocalStorage(); // Clean up any stale data
+				return;
 			}
 			
-			// ⭐ Try to get profile (will use cookies OR Authorization header)
+			console.log("🔐 Found tokens in localStorage, verifying with server...");
+			
+			// ⭐ Try to get profile (axios interceptor will add Authorization header)
 			const response = await axios.get("/auth/profile");
 			
 			console.log("✅ Auth check successful:", response.data);
@@ -257,14 +264,18 @@ export const useUserStore = create((set, get) => ({
 			// ⭐ Get refresh token from localStorage
 			const tokens = getTokensFromLocalStorage();
 			
+			if (!tokens || !tokens.refreshToken) {
+				throw new Error("No refresh token available");
+			}
+			
 			const response = await axios.post("/auth/refresh-token", {
-				refreshToken: tokens?.refreshToken
+				refreshToken: tokens.refreshToken
 			});
 			
 			console.log("✅ Token refreshed successfully");
 			
 			// ⭐ Update access token in localStorage
-			if (response.data.accessToken && tokens) {
+			if (response.data.accessToken) {
 				const updatedTokens = {
 					...tokens,
 					accessToken: response.data.accessToken
