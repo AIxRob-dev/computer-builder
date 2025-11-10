@@ -12,6 +12,17 @@ console.log("With Credentials:", true);
 console.log("Timestamp:", new Date().toISOString());
 console.log("================================");
 
+// ⭐ Helper to get tokens from localStorage
+const getStoredTokens = () => {
+	try {
+		const tokens = localStorage.getItem('auth_tokens');
+		return tokens ? JSON.parse(tokens) : null;
+	} catch (e) {
+		console.error("❌ Failed to parse stored tokens:", e);
+		return null;
+	}
+};
+
 // ⭐ Create axios instance with proper configuration
 const axiosInstance = axios.create({
   baseURL,
@@ -22,14 +33,22 @@ const axiosInstance = axios.create({
   timeout: 30000, // 30 second timeout
 });
 
-// ⭐ Request Interceptor - Log all outgoing requests
+// ⭐ Request Interceptor - Add Authorization header and log requests
 axiosInstance.interceptors.request.use(
   (config) => {
     const method = config.method?.toUpperCase() || "UNKNOWN";
     const url = config.url || "unknown";
     
+    // ⭐ CRITICAL: Add Authorization header if we have tokens in localStorage
+    const tokens = getStoredTokens();
+    if (tokens && tokens.accessToken) {
+      config.headers.Authorization = `Bearer ${tokens.accessToken}`;
+      console.log("🔐 Added Authorization header from localStorage");
+    }
+    
     console.log(`📤 ${method} ${url}`, {
       withCredentials: config.withCredentials,
+      hasAuthHeader: !!config.headers.Authorization,
       hasData: !!config.data,
       timestamp: new Date().toISOString()
     });
@@ -81,18 +100,17 @@ axiosInstance.interceptors.response.use(
       status: error.response?.status,
       statusText: error.response?.statusText,
       message: error.response?.data?.message || error.message,
-      data: error.response?.data,
+      code: error.response?.data?.code,
       timestamp: new Date().toISOString()
     });
 
     // ⭐ Handle 401 Unauthorized - Attempt token refresh
     if (error.response?.status === 401 && !originalRequest._retry) {
-      // Don't retry login/signup/refresh-token/profile endpoints
+      // Don't retry login/signup/refresh-token endpoints
       if (
         originalRequest.url?.includes('/auth/login') ||
         originalRequest.url?.includes('/auth/signup') ||
-        originalRequest.url?.includes('/auth/refresh-token') ||
-        originalRequest.url?.includes('/auth/profile')
+        originalRequest.url?.includes('/auth/refresh-token')
       ) {
         console.log("⏭️ Skipping refresh for auth endpoint");
         return Promise.reject(error);
@@ -120,28 +138,41 @@ axiosInstance.interceptors.response.use(
       try {
         console.log("🔄 Attempting token refresh...");
         
-        // ⭐ Use raw axios to avoid circular calls
+        // ⭐ Get refresh token from localStorage
+        const tokens = getStoredTokens();
+        const refreshToken = tokens?.refreshToken;
+
+        if (!refreshToken) {
+          console.error("❌ No refresh token in localStorage");
+          throw new Error("No refresh token available");
+        }
+
+        // ⭐ Call refresh endpoint with token in body
         const response = await axios.post(
           `${baseURL}/auth/refresh-token`,
-          {},
+          { refreshToken }, // Send in body as fallback
           { 
             withCredentials: true,
             timeout: 10000 
           }
         );
 
-        if (response.status === 200) {
+        if (response.status === 200 && response.data.accessToken) {
           console.log("✅ Token refreshed successfully");
           
-          // Check if cookies were set
-          setTimeout(() => {
-            console.log("🍪 Cookies after refresh:", document.cookie);
-          }, 100);
+          // ⭐ Update stored tokens
+          const newTokens = {
+            ...tokens,
+            accessToken: response.data.accessToken
+          };
+          localStorage.setItem('auth_tokens', JSON.stringify(newTokens));
+          console.log("💾 New access token saved to localStorage");
 
           isRefreshing = false;
-          processQueue(null, response.data);
+          processQueue(null, response.data.accessToken);
           
-          // Retry the original request
+          // Retry the original request with new token
+          originalRequest.headers.Authorization = `Bearer ${response.data.accessToken}`;
           return axiosInstance(originalRequest);
         }
       } catch (refreshError) {
@@ -153,9 +184,10 @@ axiosInstance.interceptors.response.use(
         isRefreshing = false;
         processQueue(refreshError, null);
         
-        // Clear any stored user data
+        // Clear stored data
         console.log("🧹 Clearing user session");
-        localStorage.removeItem('user');
+        localStorage.removeItem('user_session');
+        localStorage.removeItem('auth_tokens');
         
         // Redirect to login only if not already there
         if (!window.location.pathname.includes('/login') && 
@@ -265,7 +297,8 @@ export const checkApiConnection = async () => {
 // ⭐ Export helper to manually clear auth state
 export const clearAuthState = () => {
   console.log("🧹 Manually clearing auth state");
-  localStorage.removeItem('user');
+  localStorage.removeItem('user_session');
+  localStorage.removeItem('auth_tokens');
   document.cookie.split(";").forEach((c) => {
     document.cookie = c
       .replace(/^ +/, "")
