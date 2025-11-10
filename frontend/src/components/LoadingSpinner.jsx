@@ -9,17 +9,17 @@ const LoadingSpinner = () => {
   const [showDebug, setShowDebug] = useState(false);
 
   useEffect(() => {
-    // Show warning if loading takes more than 8 seconds
+    // Show warning if loading takes more than 5 seconds
     const warningTimer = setTimeout(() => {
       console.warn("⚠️ Auth check taking longer than expected");
       setShowWarning(true);
-    }, 8000);
+    }, 5000);
 
-    // Auto-skip if loading takes more than 15 seconds
+    // Auto-skip if loading takes more than 10 seconds
     const autoSkipTimer = setTimeout(() => {
       console.error("❌ Auth check timeout - forcing skip");
       handleForceSkip();
-    }, 15000);
+    }, 10000);
 
     // Track time elapsed
     const interval = setInterval(() => {
