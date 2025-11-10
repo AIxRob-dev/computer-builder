@@ -2,7 +2,7 @@ import { create } from "zustand";
 import axios from "../lib/axios";
 import { toast } from "react-hot-toast";
 
-// Custom toast styles matching your theme
+// Custom toast styles
 const toastStyles = {
 	style: {
 		background: '#18181b',
@@ -14,25 +14,62 @@ const toastStyles = {
 		letterSpacing: '0.025em',
 	},
 	success: {
-		iconTheme: {
-			primary: '#fff',
-			secondary: '#18181b',
-		},
+		iconTheme: { primary: '#fff', secondary: '#18181b' },
 		duration: 3000,
 	},
 	error: {
-		iconTheme: {
-			primary: '#fff',
-			secondary: '#18181b',
-		},
+		iconTheme: { primary: '#fff', secondary: '#18181b' },
 		duration: 4000,
 	},
 	loading: {
-		iconTheme: {
-			primary: '#71717a',
-			secondary: '#18181b',
-		},
+		iconTheme: { primary: '#71717a', secondary: '#18181b' },
 	},
+};
+
+// ⭐ CRITICAL: Helper to detect if cookies are working
+const areCookiesWorking = () => {
+	try {
+		document.cookie = "test=1; path=/; SameSite=Lax";
+		const result = document.cookie.indexOf("test=") !== -1;
+		document.cookie = "test=1; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/";
+		return result;
+	} catch (e) {
+		return false;
+	}
+};
+
+// ⭐ Helper to save user to localStorage as fallback
+const saveUserToLocalStorage = (user) => {
+	try {
+		localStorage.setItem('user_session', JSON.stringify(user));
+		console.log("💾 User saved to localStorage");
+	} catch (e) {
+		console.error("❌ Failed to save to localStorage:", e);
+	}
+};
+
+// ⭐ Helper to get user from localStorage
+const getUserFromLocalStorage = () => {
+	try {
+		const user = localStorage.getItem('user_session');
+		if (user) {
+			console.log("📦 User loaded from localStorage");
+			return JSON.parse(user);
+		}
+	} catch (e) {
+		console.error("❌ Failed to load from localStorage:", e);
+	}
+	return null;
+};
+
+// ⭐ Helper to clear localStorage
+const clearLocalStorage = () => {
+	try {
+		localStorage.removeItem('user_session');
+		console.log("🧹 LocalStorage cleared");
+	} catch (e) {
+		console.error("❌ Failed to clear localStorage:", e);
+	}
 };
 
 export const useUserStore = create((set, get) => ({
@@ -40,6 +77,7 @@ export const useUserStore = create((set, get) => ({
 	loading: false,
 	checkingAuth: true,
 	error: null,
+	useFallbackAuth: !areCookiesWorking(),
 
 	signup: async ({ name, email, password, confirmPassword }) => {
 		set({ loading: true, error: null });
@@ -64,20 +102,25 @@ export const useUserStore = create((set, get) => ({
 			console.log("✅ Signup successful:", res.data);
 			set({ user: res.data, loading: false, error: null });
 			
+			// ⭐ Save to localStorage as fallback
+			saveUserToLocalStorage(res.data);
+			
 			toast.dismiss(loadingToast);
 			toast.success(`Welcome aboard, ${res.data.name || 'there'}! 🎉`, {
 				...toastStyles,
 				...toastStyles.success,
 			});
 
-			// ⭐ CRITICAL: Verify cookies were set after signup
+			// ⭐ Check cookies after signup
 			setTimeout(() => {
-				console.log("🍪 Cookies after signup:", document.cookie);
-				if (!document.cookie.includes("accessToken")) {
-					console.error("⚠️ WARNING: No cookies set after signup!");
-					toast.error("Session setup incomplete. Please try logging in.", {
+				const cookiesWork = areCookiesWorking();
+				console.log("🍪 Cookies working:", cookiesWork);
+				if (!cookiesWork) {
+					console.warn("⚠️ Cookies not working - using localStorage fallback");
+					set({ useFallbackAuth: true });
+					toast("📌 Session will persist in this browser only", {
 						...toastStyles,
-						...toastStyles.error,
+						duration: 3000,
 					});
 				}
 			}, 500);
@@ -108,9 +151,10 @@ export const useUserStore = create((set, get) => ({
 			const res = await axios.post("/auth/login", { email, password });
 			
 			console.log("✅ Login successful:", res.data);
-			console.log("🍪 Response headers:", res.headers);
-			
 			set({ user: res.data, loading: false, error: null });
+			
+			// ⭐ CRITICAL: Save to localStorage as fallback
+			saveUserToLocalStorage(res.data);
 			
 			toast.dismiss(loadingToast);
 			toast.success(`Welcome back, ${res.data.name || 'there'}! ✨`, {
@@ -118,25 +162,15 @@ export const useUserStore = create((set, get) => ({
 				...toastStyles.success,
 			});
 
-			// ⭐ CRITICAL: Verify cookies were set after login
+			// ⭐ Check cookies after login
 			setTimeout(() => {
+				const cookiesWork = areCookiesWorking();
 				console.log("🍪 Cookies after login:", document.cookie);
-				console.log("👤 User state:", get().user);
+				console.log("🍪 Cookies working:", cookiesWork);
 				
-				if (!document.cookie.includes("accessToken")) {
-					console.error("⚠️ CRITICAL: No cookies set after login!");
-					console.error("Browser info:", {
-						userAgent: navigator.userAgent,
-						cookiesEnabled: navigator.cookieEnabled,
-						platform: navigator.platform
-					});
-					
-					// Show warning but don't block - user is technically logged in
-					toast("⚠️ Session may not persist. Clear browser cache if issues persist.", {
-						...toastStyles,
-						icon: "⚠️",
-						duration: 5000,
-					});
+				if (!cookiesWork) {
+					console.warn("⚠️ Cookies not working - using localStorage fallback");
+					set({ useFallbackAuth: true });
 				}
 			}, 500);
 
@@ -161,20 +195,15 @@ export const useUserStore = create((set, get) => ({
 
 		try {
 			await axios.post("/auth/logout");
+		} catch (error) {
+			console.error("❌ Logout error:", error);
+		} finally {
+			// ⭐ Always clear both cookie and localStorage
 			set({ user: null, error: null });
+			clearLocalStorage();
 			
 			toast.dismiss(loadingToast);
 			toast.success("You've been signed out successfully. See you soon! 👋", {
-				...toastStyles,
-				...toastStyles.success,
-			});
-		} catch (error) {
-			console.error("❌ Logout error:", error);
-			// Even if logout fails, clear local state
-			set({ user: null, error: null });
-			
-			toast.dismiss(loadingToast);
-			toast.success("Signed out successfully", {
 				...toastStyles,
 				...toastStyles.success,
 			});
@@ -188,20 +217,33 @@ export const useUserStore = create((set, get) => ({
 			console.log("🔍 Checking authentication...");
 			console.log("🍪 Current cookies:", document.cookie);
 			
+			// ⭐ CRITICAL: Try cookies first
 			const response = await axios.get("/auth/profile");
 			
-			console.log("✅ Auth check successful:", response.data);
+			console.log("✅ Auth check successful (cookies):", response.data);
 			set({ user: response.data, checkingAuth: false, error: null });
 			
+			// ⭐ Sync to localStorage
+			saveUserToLocalStorage(response.data);
+			
 		} catch (error) {
-			console.error("❌ Auth check failed:", error.response?.status, error.message);
+			console.error("❌ Auth check via cookies failed:", error.response?.status);
 			
-			// ⭐ CRITICAL: Always set checkingAuth to false, even on error
-			set({ checkingAuth: false, user: null });
+			// ⭐ CRITICAL: Try localStorage fallback
+			const localUser = getUserFromLocalStorage();
 			
-			// Only show error if it's not a 401 (which is expected for non-authenticated users)
-			if (error.response?.status !== 401) {
-				console.error("Unexpected auth check error:", error);
+			if (localUser) {
+				console.log("✅ Auth restored from localStorage:", localUser);
+				set({ user: localUser, checkingAuth: false, useFallbackAuth: true });
+				
+				// Show info toast
+				toast("📌 Session restored from local storage", {
+					...toastStyles,
+					duration: 2000,
+				});
+			} else {
+				console.log("ℹ️ No authentication found");
+				set({ checkingAuth: false, user: null });
 			}
 		}
 	},
@@ -221,13 +263,20 @@ export const useUserStore = create((set, get) => ({
 			
 		} catch (error) {
 			console.error("❌ Token refresh failed:", error);
-			set({ user: null, checkingAuth: false });
+			
+			// ⭐ If refresh fails, try localStorage
+			const localUser = getUserFromLocalStorage();
+			if (localUser) {
+				console.log("⚠️ Using localStorage fallback after refresh failure");
+				set({ user: localUser, checkingAuth: false, useFallbackAuth: true });
+			} else {
+				set({ user: null, checkingAuth: false });
+				clearLocalStorage();
+			}
+			
 			throw error;
 		}
 	},
 
-	// ⭐ NEW: Clear error
 	clearError: () => set({ error: null }),
 }));
-
-// ⭐ REMOVED: Duplicate axios interceptor (keeping only the one in lib/axios.js)
