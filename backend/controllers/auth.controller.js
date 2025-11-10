@@ -132,6 +132,7 @@ export const refreshToken = async (req, res) => {
 		const refreshToken = req.cookies.refreshToken;
 
 		if (!refreshToken) {
+			console.log("⚠️ No refresh token in cookies");
 			return res.status(401).json({ message: "No refresh token provided" });
 		}
 
@@ -139,6 +140,7 @@ export const refreshToken = async (req, res) => {
 		const storedToken = await redis.get(`refresh_token:${decoded.userId}`);
 
 		if (storedToken !== refreshToken) {
+			console.log("⚠️ Refresh token mismatch");
 			return res.status(401).json({ message: "Invalid refresh token" });
 		}
 
@@ -154,9 +156,18 @@ export const refreshToken = async (req, res) => {
 			maxAge: 15 * 60 * 1000,
 		});
 
+		console.log("✅ Token refreshed for user:", decoded.userId);
 		res.json({ message: "Token refreshed successfully" });
 	} catch (error) {
-		console.log("Error in refreshToken controller", error.message);
+		if (error.name === "JsonWebTokenError") {
+			console.log("⚠️ Invalid refresh token:", error.message);
+			return res.status(401).json({ message: "Invalid refresh token" });
+		}
+		if (error.name === "TokenExpiredError") {
+			console.log("⚠️ Refresh token expired");
+			return res.status(401).json({ message: "Refresh token expired" });
+		}
+		console.error("❌ Error in refreshToken controller:", error.message);
 		res.status(500).json({ message: "Server error", error: error.message });
 	}
 };
