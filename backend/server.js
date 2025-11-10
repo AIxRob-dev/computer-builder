@@ -2,14 +2,12 @@ import express from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import cors from "cors";
-
 import authRoutes from "./routes/auth.route.js";
 import productRoutes from "./routes/product.route.js";
 import cartRoutes from "./routes/cart.route.js";
 import couponRoutes from "./routes/coupon.route.js";
 import paymentRoutes from "./routes/payment.route.js";
 import analyticsRoutes from "./routes/analytics.route.js";
-
 import { connectDB } from "./lib/db.js";
 
 dotenv.config();
@@ -25,8 +23,10 @@ console.log("Port:", PORT);
 // CORS Configuration
 const allowedOrigins = process.env.NODE_ENV === "production" 
   ? [
-      process.env.CLIENT_URL,
-      /\.vercel\.app$/ // Allow all Vercel preview deployments
+      "https://www.computerbuilder.in",        // ⭐ Main domain with www
+      "https://computerbuilder.in",            // ⭐ Main domain without www
+      process.env.CLIENT_URL,                  // From environment variable
+      /\.vercel\.app$/                         // Allow Vercel preview deployments
     ]
   : ["http://localhost:5173", "http://localhost:5174"];
 
@@ -55,7 +55,7 @@ const corsOptions = {
     return callback(null, true);
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'], // ⭐ PATCH included
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   preflightContinue: false,
   optionsSuccessStatus: 204
