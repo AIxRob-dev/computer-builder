@@ -88,6 +88,9 @@ app.use((req, res, next) => {
     res.setHeader("X-Content-Type-Options", "nosniff");
     res.setHeader("X-Frame-Options", "DENY");
     res.setHeader("X-XSS-Protection", "1; mode=block");
+    
+    // ⭐ CRITICAL for iOS Safari cookie handling
+    res.setHeader("Access-Control-Allow-Credentials", "true");
   }
   next();
 });
