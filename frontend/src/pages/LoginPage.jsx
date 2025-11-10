@@ -3,23 +3,23 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { LogIn, Mail, Lock, ArrowRight, Loader, AlertCircle } from "lucide-react";
 import { useUserStore } from "../stores/useUserStore";
-import { debugAuth } from "../utils/debugAuth";
 
 const LoginPage = () => {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
-	const [debugInfo, setDebugInfo] = useState(null);
 
 	const { login, loading, error } = useUserStore();
 
-	// Run debug on mount in development
+	// ⭐ Debug logging in development
 	useEffect(() => {
 		if (import.meta.env.MODE === "development") {
-			debugAuth.fullDebug(
-				import.meta.env.MODE === "development"
-					? "http://localhost:5000/api"
-					: "https://computerbuilders-in.onrender.com/api"
-			).then(setDebugInfo);
+			console.log("🔐 LoginPage mounted");
+			console.log("🍪 Current cookies:", document.cookie);
+			console.log("📱 Device info:", {
+				userAgent: navigator.userAgent,
+				cookiesEnabled: navigator.cookieEnabled,
+				platform: navigator.platform
+			});
 		}
 	}, []);
 
@@ -27,18 +27,21 @@ const LoginPage = () => {
 		e.preventDefault();
 		
 		console.log("🔐 Login attempt:", { email });
-		
-		// Check cookies before login
-		debugAuth.checkCookies();
+		console.log("🍪 Cookies before login:", document.cookie);
 		
 		try {
 			await login(email, password);
 			
 			// Check cookies after login
 			setTimeout(() => {
-				const cookieStatus = debugAuth.checkCookies();
-				if (!cookieStatus.hasAccessToken) {
-					console.error("⚠️ WARNING: Login succeeded but no cookies were set!");
+				console.log("🍪 Cookies after login:", document.cookie);
+				const hasAccessToken = document.cookie.includes("accessToken");
+				const hasRefreshToken = document.cookie.includes("refreshToken");
+				
+				console.log("✅ Cookie status:", { hasAccessToken, hasRefreshToken });
+				
+				if (!hasAccessToken) {
+					console.error("⚠️ WARNING: Login succeeded but no access token cookie!");
 				}
 			}, 1000);
 		} catch (err) {
@@ -48,15 +51,6 @@ const LoginPage = () => {
 
 	return (
 		<div className='min-h-screen bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8'>
-			{/* Debug Info Banner - Development Only */}
-			{import.meta.env.MODE === "development" && debugInfo && (
-				<div className="fixed top-0 left-0 right-0 bg-yellow-500 text-black text-xs p-2 z-50">
-					<strong>DEBUG:</strong> {debugInfo.deviceInfo.isMobile ? "📱 Mobile" : "💻 Desktop"} | 
-					Cookies: {debugInfo.cookieStatus.hasAccessToken ? "✅" : "❌"} | 
-					Connection: {debugInfo.connectionTest.success ? "✅" : "❌"}
-				</div>
-			)}
-
 			{/* Header Section */}
 			<motion.div
 				className='sm:mx-auto sm:w-full sm:max-w-md'
