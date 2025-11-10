@@ -26,25 +26,23 @@ const toastStyles = {
 	},
 };
 
-// ⭐ CRITICAL: Helper to detect if cookies are working
-const areCookiesWorking = () => {
-	try {
-		document.cookie = "test=1; path=/; SameSite=Lax";
-		const result = document.cookie.indexOf("test=") !== -1;
-		document.cookie = "test=1; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/";
-		return result;
-	} catch (e) {
-		return false;
-	}
-};
-
-// ⭐ Helper to save user to localStorage as fallback
+// ⭐ Helper to save user to localStorage
 const saveUserToLocalStorage = (user) => {
 	try {
 		localStorage.setItem('user_session', JSON.stringify(user));
 		console.log("💾 User saved to localStorage");
 	} catch (e) {
 		console.error("❌ Failed to save to localStorage:", e);
+	}
+};
+
+// ⭐ Helper to save tokens to localStorage
+const saveTokensToLocalStorage = (tokens) => {
+	try {
+		localStorage.setItem('auth_tokens', JSON.stringify(tokens));
+		console.log("🔐 Tokens saved to localStorage");
+	} catch (e) {
+		console.error("❌ Failed to save tokens:", e);
 	}
 };
 
@@ -62,10 +60,25 @@ const getUserFromLocalStorage = () => {
 	return null;
 };
 
+// ⭐ Helper to get tokens from localStorage
+const getTokensFromLocalStorage = () => {
+	try {
+		const tokens = localStorage.getItem('auth_tokens');
+		if (tokens) {
+			console.log("🔐 Tokens loaded from localStorage");
+			return JSON.parse(tokens);
+		}
+	} catch (e) {
+		console.error("❌ Failed to load tokens:", e);
+	}
+	return null;
+};
+
 // ⭐ Helper to clear localStorage
 const clearLocalStorage = () => {
 	try {
 		localStorage.removeItem('user_session');
+		localStorage.removeItem('auth_tokens');
 		console.log("🧹 LocalStorage cleared");
 	} catch (e) {
 		console.error("❌ Failed to clear localStorage:", e);
@@ -77,7 +90,6 @@ export const useUserStore = create((set, get) => ({
 	loading: false,
 	checkingAuth: true,
 	error: null,
-	useFallbackAuth: !areCookiesWorking(),
 
 	signup: async ({ name, email, password, confirmPassword }) => {
 		set({ loading: true, error: null });
@@ -100,30 +112,24 @@ export const useUserStore = create((set, get) => ({
 			const res = await axios.post("/auth/signup", { name, email, password });
 			
 			console.log("✅ Signup successful:", res.data);
-			set({ user: res.data, loading: false, error: null });
 			
-			// ⭐ Save to localStorage as fallback
-			saveUserToLocalStorage(res.data);
+			// ⭐ CRITICAL: Extract user and tokens separately
+			const { tokens, ...userData } = res.data;
+			
+			set({ user: userData, loading: false, error: null });
+			
+			// ⭐ Save both user data and tokens
+			saveUserToLocalStorage(userData);
+			if (tokens) {
+				saveTokensToLocalStorage(tokens);
+				console.log("🔐 Tokens received and stored");
+			}
 			
 			toast.dismiss(loadingToast);
-			toast.success(`Welcome aboard, ${res.data.name || 'there'}! 🎉`, {
+			toast.success(`Welcome aboard, ${userData.name || 'there'}! 🎉`, {
 				...toastStyles,
 				...toastStyles.success,
 			});
-
-			// ⭐ Check cookies after signup
-			setTimeout(() => {
-				const cookiesWork = areCookiesWorking();
-				console.log("🍪 Cookies working:", cookiesWork);
-				if (!cookiesWork) {
-					console.warn("⚠️ Cookies not working - using localStorage fallback");
-					set({ useFallbackAuth: true });
-					toast("📌 Session will persist in this browser only", {
-						...toastStyles,
-						duration: 3000,
-					});
-				}
-			}, 500);
 
 		} catch (error) {
 			console.error("❌ Signup error:", error.response?.data || error.message);
@@ -151,28 +157,24 @@ export const useUserStore = create((set, get) => ({
 			const res = await axios.post("/auth/login", { email, password });
 			
 			console.log("✅ Login successful:", res.data);
-			set({ user: res.data, loading: false, error: null });
 			
-			// ⭐ CRITICAL: Save to localStorage as fallback
-			saveUserToLocalStorage(res.data);
+			// ⭐ CRITICAL: Extract user and tokens separately
+			const { tokens, ...userData } = res.data;
+			
+			set({ user: userData, loading: false, error: null });
+			
+			// ⭐ Save both user data and tokens
+			saveUserToLocalStorage(userData);
+			if (tokens) {
+				saveTokensToLocalStorage(tokens);
+				console.log("🔐 Tokens received and stored");
+			}
 			
 			toast.dismiss(loadingToast);
-			toast.success(`Welcome back, ${res.data.name || 'there'}! ✨`, {
+			toast.success(`Welcome back, ${userData.name || 'there'}! ✨`, {
 				...toastStyles,
 				...toastStyles.success,
 			});
-
-			// ⭐ Check cookies after login
-			setTimeout(() => {
-				const cookiesWork = areCookiesWorking();
-				console.log("🍪 Cookies after login:", document.cookie);
-				console.log("🍪 Cookies working:", cookiesWork);
-				
-				if (!cookiesWork) {
-					console.warn("⚠️ Cookies not working - using localStorage fallback");
-					set({ useFallbackAuth: true });
-				}
-			}, 500);
 
 		} catch (error) {
 			console.error("❌ Login error:", error.response?.data || error.message);
@@ -194,11 +196,15 @@ export const useUserStore = create((set, get) => ({
 		});
 
 		try {
-			await axios.post("/auth/logout");
+			// ⭐ Send refresh token in request body as well
+			const tokens = getTokensFromLocalStorage();
+			await axios.post("/auth/logout", { 
+				refreshToken: tokens?.refreshToken 
+			});
 		} catch (error) {
 			console.error("❌ Logout error:", error);
 		} finally {
-			// ⭐ Always clear both cookie and localStorage
+			// ⭐ Always clear everything
 			set({ user: null, error: null });
 			clearLocalStorage();
 			
@@ -215,36 +221,28 @@ export const useUserStore = create((set, get) => ({
 		
 		try {
 			console.log("🔍 Checking authentication...");
-			console.log("🍪 Current cookies:", document.cookie);
 			
-			// ⭐ CRITICAL: Try cookies first
+			// ⭐ Check if we have tokens in localStorage
+			const tokens = getTokensFromLocalStorage();
+			if (tokens) {
+				console.log("🔐 Found tokens in localStorage");
+			}
+			
+			// ⭐ Try to get profile (will use cookies OR Authorization header)
 			const response = await axios.get("/auth/profile");
 			
-			console.log("✅ Auth check successful (cookies):", response.data);
+			console.log("✅ Auth check successful:", response.data);
 			set({ user: response.data, checkingAuth: false, error: null });
 			
 			// ⭐ Sync to localStorage
 			saveUserToLocalStorage(response.data);
 			
 		} catch (error) {
-			console.error("❌ Auth check via cookies failed:", error.response?.status);
+			console.error("❌ Auth check failed:", error.response?.status, error.response?.data?.code);
 			
-			// ⭐ CRITICAL: Try localStorage fallback
-			const localUser = getUserFromLocalStorage();
-			
-			if (localUser) {
-				console.log("✅ Auth restored from localStorage:", localUser);
-				set({ user: localUser, checkingAuth: false, useFallbackAuth: true });
-				
-				// Show info toast
-				toast("📌 Session restored from local storage", {
-					...toastStyles,
-					duration: 2000,
-				});
-			} else {
-				console.log("ℹ️ No authentication found");
-				set({ checkingAuth: false, user: null });
-			}
+			// ⭐ Clear everything if auth fails
+			set({ checkingAuth: false, user: null });
+			clearLocalStorage();
 		}
 	},
 
@@ -255,24 +253,34 @@ export const useUserStore = create((set, get) => ({
 		
 		try {
 			console.log("🔄 Refreshing token...");
-			const response = await axios.post("/auth/refresh-token");
+			
+			// ⭐ Get refresh token from localStorage
+			const tokens = getTokensFromLocalStorage();
+			
+			const response = await axios.post("/auth/refresh-token", {
+				refreshToken: tokens?.refreshToken
+			});
 			
 			console.log("✅ Token refreshed successfully");
+			
+			// ⭐ Update access token in localStorage
+			if (response.data.accessToken && tokens) {
+				const updatedTokens = {
+					...tokens,
+					accessToken: response.data.accessToken
+				};
+				saveTokensToLocalStorage(updatedTokens);
+			}
+			
 			set({ checkingAuth: false });
 			return response.data;
 			
 		} catch (error) {
 			console.error("❌ Token refresh failed:", error);
 			
-			// ⭐ If refresh fails, try localStorage
-			const localUser = getUserFromLocalStorage();
-			if (localUser) {
-				console.log("⚠️ Using localStorage fallback after refresh failure");
-				set({ user: localUser, checkingAuth: false, useFallbackAuth: true });
-			} else {
-				set({ user: null, checkingAuth: false });
-				clearLocalStorage();
-			}
+			// ⭐ Clear everything if refresh fails
+			set({ user: null, checkingAuth: false });
+			clearLocalStorage();
 			
 			throw error;
 		}
