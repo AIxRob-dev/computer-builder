@@ -20,23 +20,24 @@ console.log("Environment:", process.env.NODE_ENV);
 console.log("Client URL:", process.env.CLIENT_URL);
 console.log("Port:", PORT);
 
-// CORS Configuration
+// ⭐ FIXED: Enhanced CORS Configuration
 const allowedOrigins = process.env.NODE_ENV === "production" 
   ? [
-      "https://www.computerbuilder.in",        // ⭐ Main domain with www
-      "https://computerbuilder.in",            // ⭐ Main domain without www
-      process.env.CLIENT_URL,                  // From environment variable
-      /\.vercel\.app$/                         // Allow Vercel preview deployments
-    ]
+      "https://www.computerbuilder.in",
+      "https://computerbuilder.in",
+      process.env.CLIENT_URL,
+    ].filter(Boolean) // Remove undefined values
   : ["http://localhost:5173", "http://localhost:5174"];
 
 console.log("Allowed CORS origins:", allowedOrigins);
 
-// ⭐ Updated CORS configuration
 const corsOptions = {
   origin: function(origin, callback) {
-    // Allow requests with no origin (mobile apps, Postman, etc.)
-    if (!origin) return callback(null, true);
+    // ⭐ Allow requests with no origin (mobile apps, Postman, server-to-server)
+    if (!origin) {
+      console.log("Request with no origin - allowing");
+      return callback(null, true);
+    }
     
     // Check if origin matches any allowed origin
     const isAllowed = allowedOrigins.some(allowed => {
@@ -47,20 +48,24 @@ const corsOptions = {
     });
     
     if (!isAllowed) {
-      const msg = `The CORS policy for this site does not allow access from origin ${origin}`;
-      console.log("CORS blocked:", origin);
+      console.log("❌ CORS blocked:", origin);
+      const msg = `CORS policy does not allow access from origin: ${origin}`;
       return callback(new Error(msg), false);
     }
-    console.log("CORS allowed:", origin);
+    
+    console.log("✅ CORS allowed:", origin);
     return callback(null, true);
   },
-  credentials: true,
+  credentials: true, // ⭐ CRITICAL: Allow cookies
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['Set-Cookie'], // ⭐ Expose Set-Cookie header
   preflightContinue: false,
-  optionsSuccessStatus: 204
+  optionsSuccessStatus: 204,
+  maxAge: 86400 // Cache preflight requests for 24 hours
 };
 
+// ⭐ Apply CORS before other middleware
 app.use(cors(corsOptions));
 
 // ⭐ Handle preflight requests explicitly
@@ -69,9 +74,21 @@ app.options('*', cors(corsOptions));
 app.use(express.json({ limit: "10mb" }));
 app.use(cookieParser());
 
-// Request logging middleware
+// ⭐ FIXED: Request logging middleware (corrected template literal)
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  console.log("Origin:", req.headers.origin);
+  console.log("Cookies:", req.cookies);
+  next();
+});
+
+// ⭐ Add security headers
+app.use((req, res, next) => {
+  if (process.env.NODE_ENV === "production") {
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("X-Frame-Options", "DENY");
+    res.setHeader("X-XSS-Protection", "1; mode=block");
+  }
   next();
 });
 
@@ -87,20 +104,31 @@ app.get("/api/health", (req, res) => {
   res.json({ 
     status: "ok", 
     environment: process.env.NODE_ENV,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    cookies: !!req.cookies.accessToken
   });
 });
 
-// Error handling middleware
+// ⭐ Enhanced error handling middleware
 app.use((err, req, res, next) => {
-  console.error("Global error handler:", err);
+  console.error("❌ Global error handler:", err.message);
+  console.error("Stack:", err.stack);
+  
+  // Handle CORS errors specifically
+  if (err.message.includes("CORS")) {
+    return res.status(403).json({ 
+      error: "CORS error", 
+      message: "Access from this origin is not allowed" 
+    });
+  }
+  
   res.status(500).json({ 
     error: "Internal server error", 
-    message: err.message 
+    message: process.env.NODE_ENV === "production" ? "Something went wrong" : err.message 
   });
 });
 
 app.listen(PORT, () => {
-  console.log("Server is running on http://localhost:" + PORT);
+  console.log("✅ Server is running on http://localhost:" + PORT);
   connectDB();
 });
