@@ -23,21 +23,18 @@ import { useCartStore } from "./stores/useCartStore";
 
 // ⭐ CRITICAL: Utility to force unlock scroll
 const forceUnlockScroll = () => {
-    // Remove any inline styles that might lock scroll
     document.body.style.overflow = '';
     document.body.style.position = '';
     document.body.style.top = '';
     document.body.style.width = '';
     document.documentElement.style.overflow = '';
     
-    // Remove common scroll-lock classes
     document.body.classList.remove('overflow-hidden', 'no-scroll', 'modal-open');
     document.documentElement.classList.remove('overflow-hidden', 'no-scroll');
     
     console.log("🔓 Scroll forcefully unlocked");
 };
 
-// ⭐ Make it globally available for debugging
 if (typeof window !== 'undefined') {
     window.forceUnlockScroll = forceUnlockScroll;
 }
@@ -47,13 +44,11 @@ function App() {
     const { getCartItems } = useCartStore();
     const location = useLocation();
     
-    // ⭐ CRITICAL: Force unlock scroll on every route change
     useEffect(() => {
         console.log("🔄 Route changed:", location.pathname);
         forceUnlockScroll();
     }, [location.pathname]);
 
-    // ⭐ CRITICAL: Force unlock scroll on mount and unmount
     useEffect(() => {
         console.log("🚀 App mounted - unlocking scroll");
         forceUnlockScroll();
@@ -64,19 +59,15 @@ function App() {
         };
     }, []);
 
-    // ⭐ CRITICAL: Force unlock scroll when auth state changes
     useEffect(() => {
         if (!checkingAuth) {
             console.log("✅ Auth check complete - ensuring scroll is unlocked");
-            // Small delay to ensure any loading states have cleaned up
             setTimeout(forceUnlockScroll, 100);
         }
     }, [checkingAuth]);
 
-    // ⭐ CRITICAL: Periodic scroll check (safety net)
     useEffect(() => {
         const intervalId = setInterval(() => {
-            // Only unlock if body has overflow hidden AND no modals/dialogs are open
             const hasModal = document.querySelector('[role="dialog"], .modal, [data-modal="true"]');
             const isHidden = window.getComputedStyle(document.body).overflow === 'hidden';
             
@@ -84,12 +75,12 @@ function App() {
                 console.warn("⚠️ Detected stuck scroll lock - fixing");
                 forceUnlockScroll();
             }
-        }, 2000); // Check every 2 seconds
+        }, 2000);
 
         return () => clearInterval(intervalId);
     }, []);
 
-    // Check authentication on mount
+    // Check authentication on mount - SILENTLY in background
     useEffect(() => {
         console.log("🚀 App mounted - initiating auth check");
         checkAuth();
@@ -106,7 +97,6 @@ function App() {
         getCartItems();
     }, [getCartItems, user]);
 
-    // Enhanced debug logging for auth state
     useEffect(() => {
         console.log("🔍 Auth State Changed:", {
             checkingAuth,
@@ -117,13 +107,17 @@ function App() {
         });
     }, [checkingAuth, user]);
 
-    // ⭐ CRITICAL: Show loading spinner while checking auth
-    if (checkingAuth) {
-        console.log("⏳ Checking authentication...");
+    // ⭐ IMPROVED: Don't block the entire UI while checking auth
+    // Only show loading spinner for protected routes that require auth
+    const isProtectedRoute = ['/cart', '/checkout', '/purchase-success', '/purchase-cancel', '/secret-dashboard'].includes(location.pathname);
+    
+    // Only show full-page loading for protected routes while checking auth
+    if (checkingAuth && isProtectedRoute) {
+        console.log("⏳ Checking authentication for protected route...");
         return <LoadingSpinner />;
     }
 
-    console.log("✅ Auth check complete. Rendering app.");
+    console.log("✅ Rendering app - checkingAuth:", checkingAuth, "user:", !!user);
 
     return (
         <div className='min-h-screen bg-black text-white relative flex flex-col'>
@@ -131,7 +125,6 @@ function App() {
             <div className='fixed inset-0 overflow-hidden pointer-events-none -z-10'>
                 <div className='absolute inset-0 bg-gradient-to-br from-zinc-950 via-black to-zinc-900' />
                 
-                {/* Subtle noise texture overlay for depth */}
                 <div 
                     className='absolute inset-0 opacity-[0.015]' 
                     style={{
@@ -139,10 +132,7 @@ function App() {
                     }}
                 />
                 
-                {/* Minimal accent glow - top */}
                 <div className='absolute top-0 left-1/4 w-96 h-96 bg-white/[0.02] rounded-full blur-3xl' />
-                
-                {/* Minimal accent glow - bottom right */}
                 <div className='absolute bottom-0 right-1/4 w-96 h-96 bg-zinc-400/[0.01] rounded-full blur-3xl' />
             </div>
 
@@ -153,7 +143,7 @@ function App() {
             <main className='relative z-10 pt-12 sm:pt-14 md:pt-16 flex-grow'>
                 <ScrollToTop />
                 <Routes>
-                    {/* Public Routes */}
+                    {/* Public Routes - Always accessible */}
                     <Route path='/' element={<HomePage />} />
                     <Route path="/product/:id" element={<ProductDetailPage />} />
                     <Route path='/category/:category' element={<CategoryPage />} />
@@ -200,7 +190,6 @@ function App() {
             {/* Footer */}
             <Footer />
             
-            {/* Enhanced Toast Notifications - Premium Dark Theme */}
             <Toaster 
                 position="bottom-right"
                 reverseOrder={false}
@@ -212,7 +201,6 @@ function App() {
                     left: 20,
                 }}
                 toastOptions={{
-                    // Default options
                     className: '',
                     duration: 2500,
                     style: {
@@ -229,7 +217,6 @@ function App() {
                         maxWidth: '400px',
                         minWidth: '250px',
                     },
-                    // Success toast styling
                     success: {
                         duration: 2000,
                         iconTheme: {
@@ -241,7 +228,6 @@ function App() {
                             background: 'rgba(24, 24, 27, 0.98)',
                         },
                     },
-                    // Error toast styling
                     error: {
                         duration: 3500,
                         iconTheme: {
@@ -253,7 +239,6 @@ function App() {
                             background: 'rgba(24, 24, 27, 0.98)',
                         },
                     },
-                    // Loading toast styling
                     loading: {
                         duration: Infinity,
                         iconTheme: {
