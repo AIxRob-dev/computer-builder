@@ -18,23 +18,20 @@ const storeRefreshToken = async (userId, refreshToken) => {
 	await redis.set(`refresh_token:${userId}`, refreshToken, "EX", 7 * 24 * 60 * 60); // 7days
 };
 
-// ⭐ FIXED: Enhanced cookie configuration for better cross-device compatibility
+// ⭐ FIXED: Enhanced cookie configuration for cross-origin auth
 const setCookies = (res, accessToken, refreshToken) => {
 	const isProduction = process.env.NODE_ENV === "production";
 	
 	// Common cookie options
 	const cookieOptions = {
 		httpOnly: true,
-		secure: isProduction, // Only secure in production (requires HTTPS)
-		sameSite: isProduction ? "none" : "lax",
-		path: "/", // Explicit path
+		secure: isProduction, // Requires HTTPS in production
+		sameSite: isProduction ? "none" : "lax", // "none" allows cross-site cookies
+		path: "/",
 	};
 
-	// ⭐ IMPORTANT: Add domain only in production if using custom domain
-	// Uncomment and set if you're using a custom domain
-	// if (isProduction) {
-	//   cookieOptions.domain = ".computerbuilder.in"; // Note the dot prefix
-	// }
+	// ⭐ CRITICAL: DO NOT set domain for cross-origin cookies
+	// Let the browser handle the domain automatically
 
 	res.cookie("accessToken", accessToken, {
 		...cookieOptions,
@@ -45,6 +42,11 @@ const setCookies = (res, accessToken, refreshToken) => {
 		...cookieOptions,
 		maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 	});
+
+	// ⭐ Log cookie setting for debugging
+	if (isProduction) {
+		console.log("✅ Cookies set with SameSite=None, Secure=true");
+	}
 };
 
 export const signup = async (req, res) => {
@@ -63,11 +65,17 @@ export const signup = async (req, res) => {
 
 		setCookies(res, accessToken, refreshToken);
 
+		// ⭐ CRITICAL: Return tokens in response body for localStorage fallback
 		res.status(201).json({
 			_id: user._id,
 			name: user.name,
 			email: user.email,
 			role: user.role,
+			// ⭐ NEW: Include tokens in response for localStorage
+			tokens: {
+				accessToken,
+				refreshToken
+			}
 		});
 	} catch (error) {
 		console.log("Error in signup controller", error.message);
@@ -85,11 +93,17 @@ export const login = async (req, res) => {
 			await storeRefreshToken(user._id, refreshToken);
 			setCookies(res, accessToken, refreshToken);
 
+			// ⭐ CRITICAL: Return tokens in response body for localStorage fallback
 			res.json({
 				_id: user._id,
 				name: user.name,
 				email: user.email,
 				role: user.role,
+				// ⭐ NEW: Include tokens in response for localStorage
+				tokens: {
+					accessToken,
+					refreshToken
+				}
 			});
 		} else {
 			res.status(400).json({ message: "Invalid email or password" });
@@ -102,7 +116,7 @@ export const login = async (req, res) => {
 
 export const logout = async (req, res) => {
 	try {
-		const refreshToken = req.cookies.refreshToken;
+		const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
 		if (refreshToken) {
 			const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
 			await redis.del(`refresh_token:${decoded.userId}`);
@@ -126,14 +140,18 @@ export const logout = async (req, res) => {
 	}
 };
 
-// this will refresh the access token
+// ⭐ FIXED: Support both cookie and body-based refresh token
 export const refreshToken = async (req, res) => {
 	try {
-		const refreshToken = req.cookies.refreshToken;
+		// ⭐ Check cookies first, then request body
+		const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
 
 		if (!refreshToken) {
-			console.log("⚠️ No refresh token in cookies");
-			return res.status(401).json({ message: "No refresh token provided" });
+			console.log("⚠️ No refresh token in cookies or body");
+			return res.status(401).json({ 
+				message: "No refresh token provided",
+				code: "NO_REFRESH_TOKEN"
+			});
 		}
 
 		const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
@@ -141,12 +159,19 @@ export const refreshToken = async (req, res) => {
 
 		if (storedToken !== refreshToken) {
 			console.log("⚠️ Refresh token mismatch");
-			return res.status(401).json({ message: "Invalid refresh token" });
+			return res.status(401).json({ 
+				message: "Invalid refresh token",
+				code: "INVALID_REFRESH_TOKEN"
+			});
 		}
 
-		const accessToken = jwt.sign({ userId: decoded.userId }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "15m" });
+		const accessToken = jwt.sign(
+			{ userId: decoded.userId }, 
+			process.env.ACCESS_TOKEN_SECRET, 
+			{ expiresIn: "15m" }
+		);
 
-		// ⭐ FIXED: Use consistent cookie options
+		// ⭐ Set cookie
 		const isProduction = process.env.NODE_ENV === "production";
 		res.cookie("accessToken", accessToken, {
 			httpOnly: true,
@@ -157,18 +182,32 @@ export const refreshToken = async (req, res) => {
 		});
 
 		console.log("✅ Token refreshed for user:", decoded.userId);
-		res.json({ message: "Token refreshed successfully" });
+		
+		// ⭐ CRITICAL: Return new access token in response body
+		res.json({ 
+			message: "Token refreshed successfully",
+			accessToken // ⭐ NEW: Return token for localStorage
+		});
 	} catch (error) {
 		if (error.name === "JsonWebTokenError") {
 			console.log("⚠️ Invalid refresh token:", error.message);
-			return res.status(401).json({ message: "Invalid refresh token" });
+			return res.status(401).json({ 
+				message: "Invalid refresh token",
+				code: "INVALID_TOKEN"
+			});
 		}
 		if (error.name === "TokenExpiredError") {
 			console.log("⚠️ Refresh token expired");
-			return res.status(401).json({ message: "Refresh token expired" });
+			return res.status(401).json({ 
+				message: "Refresh token expired",
+				code: "TOKEN_EXPIRED"
+			});
 		}
 		console.error("❌ Error in refreshToken controller:", error.message);
-		res.status(500).json({ message: "Server error", error: error.message });
+		res.status(500).json({ 
+			message: "Server error", 
+			error: error.message 
+		});
 	}
 };
 
