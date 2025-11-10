@@ -1,4 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
+import { useEffect } from "react";
+import { Toaster } from "react-hot-toast";
 
 import HomePage from "./pages/HomePage";
 import SignUpPage from "./pages/SignUpPage";
@@ -6,30 +8,37 @@ import LoginPage from "./pages/LoginPage";
 import AdminPage from "./pages/AdminPage";
 import CategoryPage from "./pages/CategoryPage";
 import CheckoutPage from "./pages/CheckoutPage";
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
-import ScrollToTop from "./components/ScrollToTop";
-import { Toaster } from "react-hot-toast";
-import { useUserStore } from "./stores/useUserStore";
-import { useEffect } from "react";
-import LoadingSpinner from "./components/LoadingSpinner";
 import CartPage from "./pages/CartPage";
-import { useCartStore } from "./stores/useCartStore";
 import PurchaseSuccessPage from "./pages/PurchaseSuccessPage";
 import PurchaseCancelPage from "./pages/PurchaseCancelPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
+
+import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
+import ScrollToTop from "./components/ScrollToTop";
+import LoadingSpinner from "./components/LoadingSpinner";
+
+import { useUserStore } from "./stores/useUserStore";
+import { useCartStore } from "./stores/useCartStore";
 
 function App() {
     const { user, checkAuth, checkingAuth } = useUserStore();
     const { getCartItems } = useCartStore();
     
+    // ⭐ CRITICAL: Check authentication on mount
     useEffect(() => {
+        console.log("🚀 App mounted - initiating auth check");
         checkAuth();
     }, [checkAuth]);
 
+    // Load cart items when user is authenticated
     useEffect(() => {
-        if (!user) return;
+        if (!user) {
+            console.log("👤 No user - skipping cart load");
+            return;
+        }
 
+        console.log("🛒 User authenticated - loading cart");
         getCartItems();
     }, [getCartItems, user]);
 
@@ -41,7 +50,25 @@ function App() {
         };
     }, []);
 
-    if (checkingAuth) return <LoadingSpinner />;
+    // ⭐ Enhanced debug logging for auth state
+    useEffect(() => {
+        console.log("🔍 Auth State Changed:", {
+            checkingAuth,
+            hasUser: !!user,
+            userId: user?._id,
+            userRole: user?.role,
+            timestamp: new Date().toISOString()
+        });
+    }, [checkingAuth, user]);
+
+    // ⭐ CRITICAL: Show loading spinner while checking auth
+    // This prevents flickering and ensures proper auth flow
+    if (checkingAuth) {
+        console.log("⏳ Checking authentication...");
+        return <LoadingSpinner />;
+    }
+
+    console.log("✅ Auth check complete. Rendering app.");
 
     return (
         <div className='min-h-screen bg-black text-white relative flex flex-col'>
@@ -71,22 +98,47 @@ function App() {
             <main className='relative z-10 pt-12 sm:pt-14 md:pt-16 flex-grow'>
                 <ScrollToTop />
                 <Routes>
+                    {/* Public Routes */}
                     <Route path='/' element={<HomePage />} />
-                    <Route path='/signup' element={!user ? <SignUpPage /> : <Navigate to='/' />} />
-                    <Route path='/login' element={!user ? <LoginPage /> : <Navigate to='/' />} />
-                    <Route
-                        path='/secret-dashboard'
-                        element={user?.role === "admin" ? <AdminPage /> : <Navigate to='/login' />}
-                    />
                     <Route path="/product/:id" element={<ProductDetailPage />} />
                     <Route path='/category/:category' element={<CategoryPage />} />
-                    <Route path='/cart' element={user ? <CartPage /> : <Navigate to='/login' />} />
-                    <Route path='/checkout' element={user ? <CheckoutPage /> : <Navigate to='/login' />} />
+                    
+                    {/* Auth Routes - Redirect to home if already logged in */}
+                    <Route 
+                        path='/signup' 
+                        element={!user ? <SignUpPage /> : <Navigate to='/' replace />} 
+                    />
+                    <Route 
+                        path='/login' 
+                        element={!user ? <LoginPage /> : <Navigate to='/' replace />} 
+                    />
+                    
+                    {/* Protected Routes - Require authentication */}
+                    <Route 
+                        path='/cart' 
+                        element={user ? <CartPage /> : <Navigate to='/login' replace />} 
+                    />
+                    <Route 
+                        path='/checkout' 
+                        element={user ? <CheckoutPage /> : <Navigate to='/login' replace />} 
+                    />
                     <Route
                         path='/purchase-success'
-                        element={user ? <PurchaseSuccessPage /> : <Navigate to='/login' />}
+                        element={user ? <PurchaseSuccessPage /> : <Navigate to='/login' replace />}
                     />
-                    <Route path='/purchase-cancel' element={user ? <PurchaseCancelPage /> : <Navigate to='/login' />} />
+                    <Route 
+                        path='/purchase-cancel' 
+                        element={user ? <PurchaseCancelPage /> : <Navigate to='/login' replace />} 
+                    />
+                    
+                    {/* Admin Routes - Require admin role */}
+                    <Route
+                        path='/secret-dashboard'
+                        element={user?.role === "admin" ? <AdminPage /> : <Navigate to='/login' replace />}
+                    />
+                    
+                    {/* Catch all - redirect to home */}
+                    <Route path='*' element={<Navigate to='/' replace />} />
                 </Routes>
             </main>
             
@@ -107,11 +159,11 @@ function App() {
                 toastOptions={{
                     // Default options
                     className: '',
-                    duration: 2500, // Shorter, less annoying
+                    duration: 2500,
                     style: {
-                        background: 'rgba(24, 24, 27, 0.95)', // zinc-900 with transparency
+                        background: 'rgba(24, 24, 27, 0.95)',
                         color: '#ffffff',
-                        border: '1px solid rgba(39, 39, 42, 0.8)', // zinc-800 with transparency
+                        border: '1px solid rgba(39, 39, 42, 0.8)',
                         padding: '12px 16px',
                         fontSize: '14px',
                         fontWeight: '400',
@@ -124,37 +176,37 @@ function App() {
                     },
                     // Success toast styling
                     success: {
-                        duration: 2000, // Quick success feedback
+                        duration: 2000,
                         iconTheme: {
-                            primary: '#10b981', // green-500
+                            primary: '#10b981',
                             secondary: '#18181b',
                         },
                         style: {
-                            border: '1px solid rgba(16, 185, 129, 0.3)', // green border
+                            border: '1px solid rgba(16, 185, 129, 0.3)',
                             background: 'rgba(24, 24, 27, 0.98)',
                         },
                     },
                     // Error toast styling
                     error: {
-                        duration: 3500, // Slightly longer for errors
+                        duration: 3500,
                         iconTheme: {
-                            primary: '#ef4444', // red-500
+                            primary: '#ef4444',
                             secondary: '#18181b',
                         },
                         style: {
-                            border: '1px solid rgba(239, 68, 68, 0.3)', // red border
+                            border: '1px solid rgba(239, 68, 68, 0.3)',
                             background: 'rgba(24, 24, 27, 0.98)',
                         },
                     },
                     // Loading toast styling
                     loading: {
-                        duration: Infinity, // Loading stays until dismissed
+                        duration: Infinity,
                         iconTheme: {
-                            primary: '#3b82f6', // blue-500
+                            primary: '#3b82f6',
                             secondary: '#18181b',
                         },
                         style: {
-                            border: '1px solid rgba(59, 130, 246, 0.3)', // blue border
+                            border: '1px solid rgba(59, 130, 246, 0.3)',
                         },
                     },
                 }}
