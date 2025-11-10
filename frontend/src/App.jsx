@@ -33,19 +33,28 @@ function App() {
         getCartItems();
     }, [getCartItems, user]);
 
+    // Cleanup: Ensure scroll is never locked
+    useEffect(() => {
+        return () => {
+            document.body.style.overflow = 'auto';
+            document.documentElement.style.overflow = 'auto';
+        };
+    }, []);
+
     if (checkingAuth) return <LoadingSpinner />;
 
     return (
-        <div className='min-h-screen bg-black text-white relative overflow-hidden flex flex-col'>
+        <div className='min-h-screen bg-black text-white relative flex flex-col'>
             {/* Premium Black Background with Subtle Gradient */}
-            <div className='absolute inset-0 overflow-hidden pointer-events-none'>
+            <div className='fixed inset-0 overflow-hidden pointer-events-none -z-10'>
                 <div className='absolute inset-0 bg-gradient-to-br from-zinc-950 via-black to-zinc-900' />
                 
                 {/* Subtle noise texture overlay for depth */}
-                <div className='absolute inset-0 opacity-[0.015]' 
-                     style={{
-                         backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-                     }}
+                <div 
+                    className='absolute inset-0 opacity-[0.015]' 
+                    style={{
+                        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+                    }}
                 />
                 
                 {/* Minimal accent glow - top */}
@@ -59,7 +68,7 @@ function App() {
             <Navbar />
             
             {/* Main Content */}
-            <div className='relative z-10 pt-12 sm:pt-14 md:pt-16 flex-grow'>
+            <main className='relative z-10 pt-12 sm:pt-14 md:pt-16 flex-grow'>
                 <ScrollToTop />
                 <Routes>
                     <Route path='/' element={<HomePage />} />
@@ -79,61 +88,73 @@ function App() {
                     />
                     <Route path='/purchase-cancel' element={user ? <PurchaseCancelPage /> : <Navigate to='/login' />} />
                 </Routes>
-            </div>
+            </main>
             
             {/* Footer */}
             <Footer />
             
             {/* Enhanced Toast Notifications - Premium Dark Theme */}
             <Toaster 
-                position="top-center"
+                position="bottom-right"
                 reverseOrder={false}
-                gutter={8}
-                containerClassName=""
-                containerStyle={{}}
+                gutter={12}
+                containerStyle={{
+                    top: 20,
+                    right: 20,
+                    bottom: 20,
+                    left: 20,
+                }}
                 toastOptions={{
                     // Default options
                     className: '',
-                    duration: 3000,
+                    duration: 2500, // Shorter, less annoying
                     style: {
-                        background: '#18181b', // zinc-900
+                        background: 'rgba(24, 24, 27, 0.95)', // zinc-900 with transparency
                         color: '#ffffff',
-                        border: '1px solid #27272a', // zinc-800
-                        padding: '16px 20px',
+                        border: '1px solid rgba(39, 39, 42, 0.8)', // zinc-800 with transparency
+                        padding: '12px 16px',
                         fontSize: '14px',
-                        fontWeight: '300', // font-light
-                        letterSpacing: '0.025em',
-                        boxShadow: '0 10px 40px rgba(0, 0, 0, 0.5)',
-                        backdropFilter: 'blur(10px)',
-                        maxWidth: '500px',
+                        fontWeight: '400',
+                        letterSpacing: '0.015em',
+                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2)',
+                        backdropFilter: 'blur(12px)',
+                        borderRadius: '8px',
+                        maxWidth: '400px',
+                        minWidth: '250px',
                     },
                     // Success toast styling
                     success: {
-                        duration: 3000,
+                        duration: 2000, // Quick success feedback
                         iconTheme: {
-                            primary: '#ffffff',
+                            primary: '#10b981', // green-500
                             secondary: '#18181b',
                         },
                         style: {
-                            border: '1px solid #3f3f46', // zinc-700
+                            border: '1px solid rgba(16, 185, 129, 0.3)', // green border
+                            background: 'rgba(24, 24, 27, 0.98)',
                         },
                     },
                     // Error toast styling
                     error: {
-                        duration: 4000,
+                        duration: 3500, // Slightly longer for errors
                         iconTheme: {
-                            primary: '#ffffff',
+                            primary: '#ef4444', // red-500
                             secondary: '#18181b',
                         },
                         style: {
-                            border: '1px solid #3f3f46', // zinc-700
+                            border: '1px solid rgba(239, 68, 68, 0.3)', // red border
+                            background: 'rgba(24, 24, 27, 0.98)',
                         },
                     },
                     // Loading toast styling
                     loading: {
+                        duration: Infinity, // Loading stays until dismissed
                         iconTheme: {
-                            primary: '#71717a', // zinc-500
+                            primary: '#3b82f6', // blue-500
                             secondary: '#18181b',
+                        },
+                        style: {
+                            border: '1px solid rgba(59, 130, 246, 0.3)', // blue border
                         },
                     },
                 }}
