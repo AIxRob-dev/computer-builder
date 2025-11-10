@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { UserPlus, Mail, Lock, User, ArrowRight, Loader } from "lucide-react";
+import { UserPlus, Mail, Lock, User, ArrowRight, Loader, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { useUserStore } from "../stores/useUserStore";
 
@@ -12,11 +12,40 @@ const SignUpPage = () => {
 		confirmPassword: "",
 	});
 
-	const { signup, loading } = useUserStore();
+	const { signup, loading, error } = useUserStore();
 
-	const handleSubmit = (e) => {
+	// ⭐ Debug logging in development
+	useEffect(() => {
+		if (import.meta.env.MODE === "development") {
+			console.log("📝 SignUpPage mounted");
+			console.log("🍪 Current cookies:", document.cookie);
+		}
+	}, []);
+
+	const handleSubmit = async (e) => {
 		e.preventDefault();
-		signup(formData);
+		
+		console.log("📝 Signup attempt:", { email: formData.email, name: formData.name });
+		console.log("🍪 Cookies before signup:", document.cookie);
+		
+		try {
+			await signup(formData);
+			
+			// Check cookies after signup
+			setTimeout(() => {
+				console.log("🍪 Cookies after signup:", document.cookie);
+				const hasAccessToken = document.cookie.includes("accessToken");
+				const hasRefreshToken = document.cookie.includes("refreshToken");
+				
+				console.log("✅ Cookie status:", { hasAccessToken, hasRefreshToken });
+				
+				if (!hasAccessToken) {
+					console.error("⚠️ WARNING: Signup succeeded but no access token cookie!");
+				}
+			}, 1000);
+		} catch (err) {
+			console.error("❌ Signup failed:", err);
+		}
 	};
 
 	return (
@@ -44,6 +73,21 @@ const SignUpPage = () => {
 				transition={{ duration: 0.6, delay: 0.2 }}
 			>
 				<div className='bg-blue-600 rounded-xl shadow-2xl py-8 sm:py-10 px-6 sm:px-10'>
+					{/* Error Message */}
+					{error && (
+						<motion.div
+							initial={{ opacity: 0, y: -10 }}
+							animate={{ opacity: 1, y: 0 }}
+							className='mb-4 p-4 bg-red-500/20 border border-red-400 rounded-lg flex items-start gap-3'
+						>
+							<AlertCircle className='h-5 w-5 text-red-100 flex-shrink-0 mt-0.5' />
+							<div>
+								<p className='text-sm font-semibold text-red-100'>Signup Failed</p>
+								<p className='text-xs text-red-200 mt-1'>{error}</p>
+							</div>
+						</motion.div>
+					)}
+
 					<form onSubmit={handleSubmit} className='space-y-6'>
 						{/* Name Field */}
 						<div>
