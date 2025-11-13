@@ -1,8 +1,10 @@
+import { memo } from "react";
 import { ShoppingCart, LogOut, Lock, Home, User } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useUserStore } from "../stores/useUserStore";
 import { useCartStore } from "../stores/useCartStore";
 
+// ⚡ OPTIMIZED: Memoized navbar to prevent unnecessary re-renders
 const Navbar = () => {
     const { user, logout } = useUserStore();
     const isAdmin = user?.role === "admin";
@@ -15,18 +17,22 @@ const Navbar = () => {
                     {/* Logo */}
                     <a 
                         href='/' 
-                        className='flex-shrink-0 flex items-center gap-2 sm:gap-3 transition-all duration-300 hover:scale-105 group'
+                        className='flex-shrink-0 flex items-center gap-2 sm:gap-3 transition-transform duration-300 hover:scale-105'
                     >
                         <div className='relative'>
-                            {/* Animated glow effect */}
-                            <div className='absolute inset-0 bg-blue-500/20 blur-xl rounded-full group-hover:bg-blue-400/30 transition-all duration-300'></div>
+                            {/* ⚡ OPTIMIZED: Simplified glow effect */}
+                            <div className='absolute inset-0 bg-blue-500/20 blur-xl rounded-full'></div>
                             
-                            {/* CPU Icon as logo */}
-                        <img 
-                            src="/font.png" 
-                            alt="Computer Builder" 
-                            className='h-14 sm:h-12 md:h-14 w-auto'
-                        />
+                            {/* ⚡ CRITICAL: Add loading="eager" and decoding="async" */}
+                            <img 
+                                src="/font.png" 
+                                alt="Computer Builder" 
+                                className='h-14 sm:h-12 md:h-14 w-auto'
+                                loading="eager"
+                                decoding="async"
+                                width="140"
+                                height="56"
+                            />
                         </div>
                         
                         <div className='flex flex-col'>
@@ -38,13 +44,15 @@ const Navbar = () => {
                             </span>
                         </div>
                     </a>
+                    
                     {/* Navigation */}
                     <nav className='flex items-center gap-1.5 sm:gap-2 flex-shrink-0'>
                         {/* Home Icon */}
                         <Link
-                            to={"/"}
-                            className='p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-all duration-200'
+                            to="/"
+                            className='p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors duration-200'
                             title="Home"
+                            aria-label="Home"
                         >
                             <Home size={18} strokeWidth={2} />
                         </Link>
@@ -52,9 +60,10 @@ const Navbar = () => {
                         {/* Cart */}
                         {user && (
                             <Link
-                                to={"/cart"}
-                                className='relative p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-all duration-200'
+                                to="/cart"
+                                className='relative p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors duration-200'
                                 title="Cart"
+                                aria-label="Shopping Cart"
                             >
                                 <ShoppingCart size={18} strokeWidth={2} />
                                 {cart.length > 0 && (
@@ -68,9 +77,10 @@ const Navbar = () => {
                         {/* Admin Dashboard */}
                         {isAdmin && (
                             <Link
-                                to={"/secret-dashboard"}
-                                className='hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md transition-all duration-200 border border-blue-700 whitespace-nowrap'
+                                to="/secret-dashboard"
+                                className='hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md transition-colors duration-200 border border-blue-700 whitespace-nowrap'
                                 title="Dashboard"
+                                aria-label="Admin Dashboard"
                             >
                                 <Lock size={14} strokeWidth={2} />
                                 <span>Admin</span>
@@ -81,8 +91,9 @@ const Navbar = () => {
                         {user ? (
                             <button
                                 onClick={logout}
-                                className='flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs sm:text-sm font-medium rounded-md transition-all duration-200 border border-gray-300 whitespace-nowrap'
+                                className='flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs sm:text-sm font-medium rounded-md transition-colors duration-200 border border-gray-300 whitespace-nowrap'
                                 title="Log Out"
+                                aria-label="Log Out"
                             >
                                 <LogOut size={16} strokeWidth={2} />
                                 <span className='hidden xs:inline'>Logout</span>
@@ -90,16 +101,18 @@ const Navbar = () => {
                         ) : (
                             <>
                                 <Link
-                                    to={"/login"}
-                                    className='flex items-center gap-1.5 px-2.5 py-1.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-all duration-200 text-xs sm:text-sm font-medium whitespace-nowrap'
+                                    to="/login"
+                                    className='flex items-center gap-1.5 px-2.5 py-1.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors duration-200 text-xs sm:text-sm font-medium whitespace-nowrap'
                                     title="Log In"
+                                    aria-label="Log In"
                                 >
                                     <User size={16} strokeWidth={2} />
                                     <span className='hidden sm:inline'>Login</span>
                                 </Link>
                                 <Link
-                                    to={"/signup"}
-                                    className='px-2.5 py-1.5 sm:px-3 sm:py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-all duration-200 font-semibold text-xs sm:text-sm whitespace-nowrap'
+                                    to="/signup"
+                                    className='px-2.5 py-1.5 sm:px-3 sm:py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors duration-200 font-semibold text-xs sm:text-sm whitespace-nowrap'
+                                    aria-label="Sign Up"
                                 >
                                     Sign Up
                                 </Link>
@@ -112,4 +125,5 @@ const Navbar = () => {
     );
 };
 
-export default Navbar;
+// ⚡ CRITICAL: Memoize to prevent re-renders when cart/user hasn't changed
+export default memo(Navbar);
