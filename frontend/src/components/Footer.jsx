@@ -1,6 +1,8 @@
+import { memo } from "react";
 import { Link } from "react-router-dom";
 import { Facebook, Twitter, Instagram, Github, Mail, Phone, MapPin, Monitor, Cpu, HardDrive, Zap } from "lucide-react";
 
+// ⚡ OPTIMIZED: Memoized footer to prevent unnecessary re-renders
 const Footer = () => {
     const currentYear = new Date().getFullYear();
 
@@ -15,10 +17,15 @@ const Footer = () => {
                     {/* Company Info */}
                     <div className='space-y-5'>
                         <div className='flex items-center'>
+                            {/* ⚡ CRITICAL: Optimize image loading */}
                             <img 
                                 src="/fontbol.png" 
                                 alt="ComputerBuilder" 
                                 className='h-6 w-auto'
+                                loading="lazy"
+                                decoding="async"
+                                width="120"
+                                height="24"
                             />
                         </div>
                         <p className='text-gray-600 text-sm font-medium leading-relaxed max-w-xs'>
@@ -40,42 +47,23 @@ const Footer = () => {
                         
                         {/* Social Media Links */}
                         <div className='flex space-x-2 pt-3'>
-                            <a 
-                                href='https://facebook.com' 
-                                target='_blank' 
-                                rel='noopener noreferrer'
-                                className='group p-2.5 bg-white border-2 border-blue-200 hover:border-blue-400 hover:bg-blue-600 transition-all duration-300 rounded-lg shadow-sm'
-                                aria-label='Facebook'
-                            >
-                                <Facebook className='w-4 h-4 text-blue-600 group-hover:text-white transition-colors' strokeWidth={2} />
-                            </a>
-                            <a 
-                                href='https://twitter.com' 
-                                target='_blank' 
-                                rel='noopener noreferrer'
-                                className='group p-2.5 bg-white border-2 border-blue-200 hover:border-blue-400 hover:bg-blue-600 transition-all duration-300 rounded-lg shadow-sm'
-                                aria-label='Twitter'
-                            >
-                                <Twitter className='w-4 h-4 text-blue-600 group-hover:text-white transition-colors' strokeWidth={2} />
-                            </a>
-                            <a 
-                                href='https://instagram.com' 
-                                target='_blank' 
-                                rel='noopener noreferrer'
-                                className='group p-2.5 bg-white border-2 border-blue-200 hover:border-blue-400 hover:bg-blue-600 transition-all duration-300 rounded-lg shadow-sm'
-                                aria-label='Instagram'
-                            >
-                                <Instagram className='w-4 h-4 text-blue-600 group-hover:text-white transition-colors' strokeWidth={2} />
-                            </a>
-                            <a 
-                                href='https://github.com' 
-                                target='_blank' 
-                                rel='noopener noreferrer'
-                                className='group p-2.5 bg-white border-2 border-blue-200 hover:border-blue-400 hover:bg-blue-600 transition-all duration-300 rounded-lg shadow-sm'
-                                aria-label='Github'
-                            >
-                                <Github className='w-4 h-4 text-blue-600 group-hover:text-white transition-colors' strokeWidth={2} />
-                            </a>
+                            {[
+                                { href: 'https://facebook.com', Icon: Facebook, label: 'Facebook' },
+                                { href: 'https://twitter.com', Icon: Twitter, label: 'Twitter' },
+                                { href: 'https://instagram.com', Icon: Instagram, label: 'Instagram' },
+                                { href: 'https://github.com', Icon: Github, label: 'Github' }
+                            ].map(({ href, Icon, label }) => (
+                                <a 
+                                    key={label}
+                                    href={href}
+                                    target='_blank' 
+                                    rel='noopener noreferrer'
+                                    className='group p-2.5 bg-white border-2 border-blue-200 hover:border-blue-400 hover:bg-blue-600 transition-all duration-300 rounded-lg shadow-sm'
+                                    aria-label={label}
+                                >
+                                    <Icon className='w-4 h-4 text-blue-600 group-hover:text-white transition-colors' strokeWidth={2} />
+                                </a>
+                            ))}
                         </div>
                     </div>
 
@@ -86,46 +74,31 @@ const Footer = () => {
                             Quick Links
                         </h4>
                         <ul className='space-y-3'>
-                            <li>
-                                <Link 
-                                    to='/' 
-                                    className='text-gray-600 hover:text-blue-600 transition-colors duration-300 text-sm font-medium inline-block hover:translate-x-1 transition-transform'
-                                >
-                                    Home
-                                </Link>
-                            </li>
-                            <li>
-                                <Link 
-                                    to='/category/Gaming-Pc' 
-                                    className='text-gray-600 hover:text-blue-600 transition-colors duration-300 text-sm font-medium inline-block hover:translate-x-1 transition-transform'
-                                >
-                                    Gaming PCs
-                                </Link>
-                            </li>
-                            <li>
-                                <Link 
-                                    to='/cart' 
-                                    className='text-gray-600 hover:text-blue-600 transition-colors duration-300 text-sm font-medium inline-block hover:translate-x-1 transition-transform'
-                                >
-                                    Shopping Cart
-                                </Link>
-                            </li>
-                            <li>
-                                <a 
-                                    href='#about' 
-                                    className='text-gray-600 hover:text-blue-600 transition-colors duration-300 text-sm font-medium inline-block hover:translate-x-1 transition-transform'
-                                >
-                                    About Us
-                                </a>
-                            </li>
-                            <li>
-                                <a 
-                                    href='#contact' 
-                                    className='text-gray-600 hover:text-blue-600 transition-colors duration-300 text-sm font-medium inline-block hover:translate-x-1 transition-transform'
-                                >
-                                    Contact
-                                </a>
-                            </li>
+                            {[
+                                { to: '/', label: 'Home' },
+                                { to: '/category/Gaming-Pc', label: 'Gaming PCs' },
+                                { to: '/cart', label: 'Shopping Cart' },
+                                { to: '#about', label: 'About Us' },
+                                { to: '#contact', label: 'Contact' }
+                            ].map(({ to, label }) => (
+                                <li key={label}>
+                                    {to.startsWith('#') ? (
+                                        <a 
+                                            href={to}
+                                            className='text-gray-600 hover:text-blue-600 transition-colors duration-300 text-sm font-medium inline-block hover:translate-x-1 transition-transform'
+                                        >
+                                            {label}
+                                        </a>
+                                    ) : (
+                                        <Link 
+                                            to={to}
+                                            className='text-gray-600 hover:text-blue-600 transition-colors duration-300 text-sm font-medium inline-block hover:translate-x-1 transition-transform'
+                                        >
+                                            {label}
+                                        </Link>
+                                    )}
+                                </li>
+                            ))}
                         </ul>
                     </div>
 
@@ -136,46 +109,22 @@ const Footer = () => {
                             PC Categories
                         </h4>
                         <ul className='space-y-3'>
-                            <li>
-                                <Link 
-                                    to='/category/Office-Pc' 
-                                    className='text-gray-600 hover:text-blue-600 transition-colors duration-300 text-sm font-medium inline-block hover:translate-x-1 transition-transform'
-                                >
-                                    Office PCs
-                                </Link>
-                            </li>
-                            <li>
-                                <Link 
-                                    to='/category/Gaming-Pc' 
-                                    className='text-gray-600 hover:text-blue-600 transition-colors duration-300 text-sm font-medium inline-block hover:translate-x-1 transition-transform'
-                                >
-                                    Gaming PCs
-                                </Link>
-                            </li>
-                            <li>
-                                <Link 
-                                    to='/category/Rendering-Pc' 
-                                    className='text-gray-600 hover:text-blue-600 transition-colors duration-300 text-sm font-medium inline-block hover:translate-x-1 transition-transform'
-                                >
-                                    Rendering PCs
-                                </Link>
-                            </li>
-                            <li>
-                                <Link 
-                                    to='/category/Exclusives' 
-                                    className='text-gray-600 hover:text-blue-600 transition-colors duration-300 text-sm font-medium inline-block hover:translate-x-1 transition-transform'
-                                >
-                                    Exclusive Builds
-                                </Link>
-                            </li>
-                            <li>
-                                <Link 
-                                    to='/Explore' 
-                                    className='text-gray-600 hover:text-blue-600 transition-colors duration-300 text-sm font-medium inline-block hover:translate-x-1 transition-transform'
-                                >
-                                    Explore All
-                                </Link>
-                            </li>
+                            {[
+                                { to: '/category/Office-Pc', label: 'Office PCs' },
+                                { to: '/category/Gaming-Pc', label: 'Gaming PCs' },
+                                { to: '/category/Rendering-Pc', label: 'Rendering PCs' },
+                                { to: '/category/Exclusives', label: 'Exclusive Builds' },
+                                { to: '/Explore', label: 'Explore All' }
+                            ].map(({ to, label }) => (
+                                <li key={label}>
+                                    <Link 
+                                        to={to}
+                                        className='text-gray-600 hover:text-blue-600 transition-colors duration-300 text-sm font-medium inline-block hover:translate-x-1 transition-transform'
+                                    >
+                                        {label}
+                                    </Link>
+                                </li>
+                            ))}
                         </ul>
                     </div>
 
@@ -186,13 +135,13 @@ const Footer = () => {
                             Contact Us
                         </h4>
                         <ul className='space-y-4'>
-                            <li className='flex items-start space-x-3 group'>
+                            <li className='flex items-start space-x-3'>
                                 <MapPin className='w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0' strokeWidth={2} />
                                 <span className='text-sm text-gray-600 font-medium leading-relaxed'>
                                     Bengaluru, Karnataka, India
                                 </span>
                             </li>
-                            <li className='flex items-center space-x-3 group'>
+                            <li className='flex items-center space-x-3'>
                                 <Phone className='w-4 h-4 text-blue-600 flex-shrink-0' strokeWidth={2} />
                                 <a 
                                     href='tel:+911234567890' 
@@ -201,7 +150,7 @@ const Footer = () => {
                                     +91 1234567890
                                 </a>
                             </li>
-                            <li className='flex items-center space-x-3 group'>
+                            <li className='flex items-center space-x-3'>
                                 <Mail className='w-4 h-4 text-blue-600 flex-shrink-0' strokeWidth={2} />
                                 <a 
                                     href='mailto:support@computerbuilder.com' 
@@ -232,24 +181,19 @@ const Footer = () => {
 
                     {/* Legal Links */}
                     <div className='flex flex-wrap justify-center gap-6'>
-                        <a 
-                            href='#privacy' 
-                            className='text-xs text-gray-600 hover:text-blue-600 transition-colors duration-300 font-medium tracking-wide'
-                        >
-                            Privacy Policy
-                        </a>
-                        <a 
-                            href='#terms' 
-                            className='text-xs text-gray-600 hover:text-blue-600 transition-colors duration-300 font-medium tracking-wide'
-                        >
-                            Terms of Service
-                        </a>
-                        <a 
-                            href='#warranty' 
-                            className='text-xs text-gray-600 hover:text-blue-600 transition-colors duration-300 font-medium tracking-wide'
-                        >
-                            Warranty Info
-                        </a>
+                        {[
+                            { href: '#privacy', label: 'Privacy Policy' },
+                            { href: '#terms', label: 'Terms of Service' },
+                            { href: '#warranty', label: 'Warranty Info' }
+                        ].map(({ href, label }) => (
+                            <a 
+                                key={label}
+                                href={href}
+                                className='text-xs text-gray-600 hover:text-blue-600 transition-colors duration-300 font-medium tracking-wide'
+                            >
+                                {label}
+                            </a>
+                        ))}
                     </div>
                 </div>
             </div>
@@ -257,4 +201,5 @@ const Footer = () => {
     );
 };
 
-export default Footer;
+// ⚡ CRITICAL: Memoize footer since it never changes
+export default memo(Footer);
