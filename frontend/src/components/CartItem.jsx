@@ -1,18 +1,33 @@
-import { Minus, Plus, Trash2 } from "lucide-react";
+import { Minus, Plus, Trash2, Tag } from "lucide-react";
 import { useCartStore } from "../stores/useCartStore";
 import { motion } from "framer-motion";
 
 const CartItem = ({ item }) => {
 	const { removeFromCart, updateQuantity } = useCartStore();
+	
+	// Calculate discount details
+	const originalPrice = Math.round(item.price * 1.3);
+	const discountAmount = originalPrice - item.price;
+	const discountPercentage = 23;
 
 	return (
 		<motion.div
-			className='bg-white border-2 border-blue-100 rounded-xl shadow-lg p-3 sm:p-6'
+			className='bg-white border-2 border-blue-100 rounded-xl shadow-lg p-3 sm:p-6 relative overflow-hidden'
 			initial={{ opacity: 0 }}
 			animate={{ opacity: 1 }}
 			exit={{ opacity: 0 }}
 			transition={{ duration: 0.3 }}
 		>
+			{/* Discount Badge - Top Right */}
+			<div className='absolute top-3 right-3 sm:top-4 sm:right-4 z-10'>
+				<div className='bg-blue-600 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg flex items-center gap-1 sm:gap-1.5 shadow-md'>
+					<Tag className='w-3 h-3 sm:w-3.5 sm:h-3.5 text-white' strokeWidth={2} />
+					<span className='text-[10px] sm:text-xs font-bold text-white uppercase tracking-wider'>
+						{discountPercentage}% OFF
+					</span>
+				</div>
+			</div>
+
 			<div className='flex items-start sm:items-center gap-3 sm:gap-6'>
 				{/* Product Image */}
 				<div className='shrink-0 w-20 sm:w-24 md:w-32'>
@@ -48,7 +63,15 @@ const CartItem = ({ item }) => {
 
 					{/* Mobile Price - Only visible on small screens */}
 					<div className='sm:hidden'>
-						<p className='text-base font-bold text-gray-900'>₹{item.price}</p>
+						<div className='space-y-1'>
+							<div className='flex items-center gap-2'>
+								<p className='text-base font-bold text-gray-900'>₹{item.price.toLocaleString()}</p>
+								<span className='text-xs text-gray-500 line-through font-semibold'>₹{originalPrice.toLocaleString()}</span>
+							</div>
+							<p className='text-[10px] text-green-600 font-bold'>
+								You save ₹{discountAmount.toLocaleString()}
+							</p>
+						</div>
 					</div>
 
 					{/* Quantity Controls & Remove Button */}
@@ -97,12 +120,37 @@ const CartItem = ({ item }) => {
 				</div>
 
 				{/* Desktop Price - Only visible on larger screens */}
-				<div className='hidden sm:block shrink-0 text-right'>
-					<p className='text-lg font-bold text-gray-900'>₹{item.price}</p>
+				<div className='hidden sm:block shrink-0 text-right space-y-1.5'>
+					<div className='flex flex-col items-end gap-1'>
+						<p className='text-lg md:text-xl font-bold text-gray-900'>₹{item.price.toLocaleString()}</p>
+						<div className='flex items-center gap-2'>
+							<span className='text-xs text-gray-500 line-through font-semibold'>₹{originalPrice.toLocaleString()}</span>
+							<span className='text-xs text-blue-600 font-bold'>-{discountPercentage}%</span>
+						</div>
+					</div>
+					<p className='text-xs text-green-600 font-bold'>
+						Save ₹{discountAmount.toLocaleString()}
+					</p>
+				</div>
+			</div>
+
+			{/* Savings Highlight Bar - Bottom */}
+			<div className='mt-3 sm:mt-4 pt-3 sm:pt-4 border-t-2 border-blue-100'>
+				<div className='flex items-center justify-between text-[10px] sm:text-xs'>
+					<div className='flex items-center gap-1.5 text-gray-600 font-semibold'>
+						<span>Item Total:</span>
+						<span className='text-gray-400 line-through'>₹{(originalPrice * item.quantity).toLocaleString()}</span>
+					</div>
+					<div className='flex items-center gap-2'>
+						<span className='text-green-600 font-bold'>
+							Total Savings: ₹{(discountAmount * item.quantity).toLocaleString()}
+						</span>
+						<div className='w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse' />
+					</div>
 				</div>
 			</div>
 		</motion.div>
 	);
 };
 
-export default CartItem;
+export default CartItem
