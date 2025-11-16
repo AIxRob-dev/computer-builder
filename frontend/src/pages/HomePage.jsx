@@ -7,6 +7,7 @@ const FeaturedProducts = lazy(() => import("../components/FeaturedProducts"));
 const BestSellerProducts = lazy(() => import("../components/BestSellerProducts"));
 const HeroSection = lazy(() => import("../components/HeroSection"));
 const PromoSlider = lazy(() => import("../components/PromoSlider"));
+const About = lazy(() => import("../components/About"));
 
 const categories = [
     { href: "/Office-Pc", name: "office-pc" },
@@ -308,6 +309,17 @@ const HomePage = () => {
                         )}
                     </>
                 )}
+
+                {/* ⚡ NEW: About Section - Added after Featured Products */}
+                <div className='relative mb-12 sm:mb-16 lg:mb-20'>
+                    <div className='absolute inset-0 flex items-center'>
+                        <div className='w-full border-t-2 border-gray-200'></div>
+                    </div>
+                </div>
+
+                <Suspense fallback={<div className="h-96 bg-gray-100 animate-pulse rounded-3xl" />}>
+                    <About />
+                </Suspense>
 
                 {/* Trust Badges - Simplified */}
                 <section className='mt-16 sm:mt-20 lg:mt-24 mb-12 sm:mb-16 lg:mb-20'>
