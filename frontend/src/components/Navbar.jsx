@@ -40,7 +40,7 @@ const Navbar = () => {
                                 Computer Builder
                             </span>
                             <span className='text-[10px] sm:text-xs text-slate-600 font-medium tracking-wider'>
-                                WE BUILD YOUR PC
+                                WE BUILD YOUR P
                             </span>
                         </div>
                     </a>
