@@ -1,9 +1,9 @@
 import axios from "axios";
 
-// ⭐ Determine the base URL based on environment
-const baseURL = import.meta.env.MODE === "development" 
-  ? "http://localhost:5000/api" 
-  : "https://computerbuilders-in.onrender.com/api";
+const baseURL =
+  import.meta.env.MODE === "development"
+    ? "http://localhost:5000/api"
+    : "https://computer-builder.onrender.com/api";
 
 console.log("=== 🔧 AXIOS CONFIGURATION ===");
 console.log("Environment:", import.meta.env.MODE);
